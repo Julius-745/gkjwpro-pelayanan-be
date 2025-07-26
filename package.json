@@ -26,7 +26,7 @@
     "nodemon": "^3.1.7"
   },
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "bun --hot tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "test": "jest",
