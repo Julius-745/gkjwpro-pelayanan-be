@@ -37,7 +37,7 @@ jobs:
       env:
         NODE_ENV: test
         JWT_SECRET: test-jwt-secret-for-testing-only
-        DATABASE_URL: :memory:
+        DATABASE_URL: :memory
     
     - name: Build project
       run: bun run build
