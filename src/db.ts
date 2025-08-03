@@ -128,4 +128,9 @@ db.prepare(`
   END
 `).run();
 
+db.pragma('journal_mode = WAL');   
+db.pragma('synchronous = NORMAL');  
+db.pragma('cache_size = 1000000');   
+db.pragma('temp_store = MEMORY'); 
+
 export default db;

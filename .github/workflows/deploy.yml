@@ -1,0 +1,88 @@
+name: Sync on DOM Cloud
+
+'on':
+  push:
+    branches: 
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.bun/install/cache
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
+    
+    - name: Install dependencies
+      run: bun install --frozen-lockfile
+    
+    - name: Run linting
+      run: bun run lint
+    
+    - name: Run tests
+      run: bun run test
+      env:
+        NODE_ENV: test
+        JWT_SECRET: test-jwt-secret-for-testing-only
+        DATABASE_URL: :memory:
+    
+    - name: Build project
+      run: bun run build
+    
+    - name: Create production environment file
+      run: |
+        cat > .env.production << EOF
+        NODE_ENV=production
+        PORT=3000
+        
+        # JWT Authentication
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+        JWT_EXPIRES_IN=24h
+        
+        # SQLite Database
+        DATABASE_URL=${{ secrets.SQLITE_DB_PATH }}
+        
+        # Security Headers (using helmet)
+        CORS_ORIGIN=*
+        TRUST_PROXY=true
+        
+        # Logging
+        LOG_LEVEL=info
+        EOF
+    
+    - name: Invoke deployment hook
+      uses: distributhor/workflow-webhook@v2
+      env:
+        webhook_url: ${{ secrets.WEBHOOK_URL }}
+        webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+        webhook_auth: ${{ secrets.WEBHOOK_AUTH }}
+        data: '{"commands":["git pull", "cp .env.production .env", "mkdir -p data", "chmod 755 data", "docker-compose up --build -d"]}'
+    
+    - name: Wait for deployment
+      run: sleep 60
+    
+    - name: Health check
+      run: |
+        for i in {1..10}; do
+          if curl -f "${{ secrets.DOMAIN_URL }}/health" 2>/dev/null; then
+            echo "✅ Deployment successful!"
+            exit 0
+          fi
+          echo "⏳ Attempt $i failed, retrying in 30 seconds..."
+          sleep 30
+        done
+        echo "❌ Deployment failed - health check timeout"
+        exit 1

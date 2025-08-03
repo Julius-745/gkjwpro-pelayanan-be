@@ -41,7 +41,11 @@
     "prepare": "husky install",
     "db:migrate": "tsx src/scripts/migrate.ts",
     "db:seed": "tsx src/scripts/seed.ts",
-    "health": "curl -f http://localhost:3000/health || exit 1"
+    "health": "curl -f http://localhost:3000/health || exit 1",
+    "docker:build": "docker build -t gkjwpro-api .",
+    "docker:run": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
