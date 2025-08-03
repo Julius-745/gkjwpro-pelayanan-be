@@ -15,7 +15,7 @@ pelayanPosition.get("/", (c) => {
     const data = stmt.all();
     return c.json({ success: true, data });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch pelayan positions" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch pelayan positions" }, 500);
   }
 });
 
@@ -35,7 +35,7 @@ pelayanPosition.get("/:id", (c) => {
 
     return c.json({ success: true, data: position });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch pelayan position" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch pelayan position" }, 500);
   }
 });
 

@@ -44,7 +44,7 @@ users.get("/", (c) => {
     const data = stmt.all();
     return c.json({ success: true, data });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch users" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch users" }, 500);
   }
 });
 
@@ -82,7 +82,7 @@ users.get("/:id", (c) => {
 
     return c.json({ success: true, data: user });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch user" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch user" }, 500);
   }
 });
 
@@ -212,7 +212,7 @@ users.delete("/:id", (c) => {
 
     return c.json({ success: true, message: "User deleted successfully" });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to delete user" }, 500);
+    return c.json({ success: false, error: error || "Failed to delete user" }, 500);
   }
 });
 

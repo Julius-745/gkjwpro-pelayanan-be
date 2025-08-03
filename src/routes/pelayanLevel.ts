@@ -15,7 +15,7 @@ pelayanLevel.get("/", (c) => {
     const data = stmt.all();
     return c.json({ success: true, data });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch pelayan levels" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch pelayan levels" }, 500);
   }
 });
 
@@ -35,7 +35,7 @@ pelayanLevel.get("/:id", (c) => {
 
     return c.json({ success: true, data: level });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch pelayan level" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch pelayan level" }, 500);
   }
 });
 

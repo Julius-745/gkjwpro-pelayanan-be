@@ -6,8 +6,6 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { compress } from "hono/compress";
 import { serveStatic } from '@hono/node-server/serve-static';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import fs from "fs";
 import dotenv from "dotenv";
 

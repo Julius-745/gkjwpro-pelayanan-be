@@ -15,7 +15,7 @@ ibadahCategory.get("/", (c) => {
     const data = stmt.all();
     return c.json({ success: true, data });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch ibadah categories" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch ibadah categories" }, 500);
   }
 });
 
@@ -35,7 +35,7 @@ ibadahCategory.get("/:id", (c) => {
 
     return c.json({ success: true, data: category });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch ibadah category" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch ibadah category" }, 500);
   }
 });
 

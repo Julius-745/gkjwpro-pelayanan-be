@@ -44,7 +44,7 @@ ibadah.get("/", (c) => {
     const data = stmt.all();
     return c.json({ success: true, data });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch ibadah data" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch ibadah data" }, 500);
   }
 });
 
@@ -85,7 +85,7 @@ ibadah.get("/:id", (c) => {
 
     return c.json({ success: true, data: ibadahData });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch ibadah" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch ibadah" }, 500);
   }
 });
 
@@ -214,7 +214,7 @@ ibadah.delete("/:id", (c) => {
 
     return c.json({ success: true, message: "Ibadah deleted successfully" });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to delete ibadah" }, 500);
+    return c.json({ success: false, error: error || "Failed to delete ibadah" }, 500);
   }
 });
 

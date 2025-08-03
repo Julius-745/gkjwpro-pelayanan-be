@@ -15,7 +15,7 @@ krw.get("/", (c) => {
     const data = stmt.all();
     return c.json({ success: true, data });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch KRW data" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch KRW data" }, 500);
   }
 });
 
@@ -35,7 +35,7 @@ krw.get("/:id", (c) => {
 
     return c.json({ success: true, data: krwData });
   } catch (error) {
-    return c.json({ success: false, error: "Failed to fetch KRW" }, 500);
+    return c.json({ success: false, error: error || "Failed to fetch KRW" }, 500);
   }
 });
 
