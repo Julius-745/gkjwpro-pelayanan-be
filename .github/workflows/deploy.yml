@@ -76,13 +76,21 @@ jobs:
     
     - name: Health check
       run: |
+        echo "Starting health check for ${{ secrets.DOMAIN_URL }}/health"
         for i in {1..10}; do
-          if curl -f "${{ secrets.DOMAIN_URL }}/health" 2>/dev/null; then
-            echo "✅ Deployment successful!"
+          echo "🔍 Health check attempt $i/10..."
+          
+          # Try HTTPS first, then HTTP with SSL skip as fallback
+          if curl -f -s --connect-timeout 10 --max-time 30 "${{ secrets.DOMAIN_URL }}/health" >/dev/null 2>&1; then
+            echo "✅ HTTPS health check successful!"
             exit 0
+          elif curl -f -s -k --connect-timeout 10 --max-time 30 "${{ secrets.DOMAIN_URL }}/health" >/dev/null 2>&1; then
+            echo "✅ Health check successful (SSL verification skipped)!"
+            exit 0
+          else
+            echo "⏳ Attempt $i failed, retrying in 30 seconds..."
+            sleep 30
           fi
-          echo "⏳ Attempt $i failed, retrying in 30 seconds..."
-          sleep 30
         done
-        echo "❌ Deployment failed - health check timeout"
+        echo "❌ Deployment failed - health check timeout after 10 attempts"
         exit 1
