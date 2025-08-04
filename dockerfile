@@ -2,11 +2,24 @@ FROM oven/bun:1-alpine
 
 WORKDIR /app
 
+# Install node, npm, Python, and build tools
+USER root
+RUN apk add --no-cache \
+    nodejs \
+    npm \
+    python3 \
+    make \
+    g++
+
+# ✅ Set python path in shell environment for node-gyp
+ENV PYTHON=/usr/bin/python3
+ENV HUSKY=0
+
 # Copy package files
 COPY package.json bun.lockb* ./
 
 # Install dependencies
-RUN bun install --frozen-lockfile --production
+RUN bun install --frozen-lockfile
 
 # Copy source code
 COPY . .
