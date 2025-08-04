@@ -66,10 +66,17 @@ jobs:
     - name: Invoke deployment hook
       uses: distributhor/workflow-webhook@v3
       with:
-        webhook_url: ${{ secrets.WEBHOOK_URL }}
+        webhook_url: https://my.domcloud.co/api/githubdeploy
         webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
         webhook_auth: ${{ secrets.WEBHOOK_AUTH }}
-        data: '{"commands":["git pull", "cp .env.production .env", "mkdir -p data", "chmod 755 data", "docker-compose up --build -d"]}'
+        data: |
+          {"commands":[
+            "git pull", 
+            "cp .env.production .env", 
+            "mkdir -p data", 
+            "chmod 755 data", 
+            "docker-compose up --build -d"
+          ]}
     
     - name: Wait for deployment
       run: sleep 60
