@@ -4,6 +4,7 @@ name: Sync on DOM Cloud
   push:
     branches: 
       - main
+      - development
 
 jobs:
   build:
