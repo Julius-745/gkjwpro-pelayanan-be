@@ -69,7 +69,17 @@ jobs:
         webhook_url: https://my.domcloud.co/api/githubdeploy
         webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
         webhook_auth: ${{ secrets.WEBHOOK_AUTH }}
-        data: '{"commands":["git pull", "cp .env.production .env", "mkdir -p data", "chmod 755 data", "docker-compose up --build -d"]}'
+        data: {
+            "commands": [
+              "rm -rf * .[^.]* || true", 
+              "git clone https://github.com/Julius-745/gkjwpro-pelayanan-be.git .",
+              "cp .env.production .env",
+              "mkdir -p data",
+              "chmod 755 data",
+              "docker-compose up --build -d"
+            ],
+            "wait": 1
+          }
     
     - name: Wait for deployment
       run: sleep 60
