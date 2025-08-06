@@ -23,7 +23,7 @@ jobs:
             "mkdir -p data", 
             "chmod 755 data", 
             "bun docker:build",
-            "bun docker:run",
+            "bun docker:build"
           ],"wait":1}
     
 
