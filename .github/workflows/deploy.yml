@@ -20,7 +20,6 @@ jobs:
         data: |
           {"commands":[
             "git pull",
-            "cd gkjwpro-pelayanan-be",
             "bun install",
             "mkdir -p data", 
             "chmod 755 data", 
