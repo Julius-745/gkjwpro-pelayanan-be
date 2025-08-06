@@ -17,7 +17,7 @@ jobs:
         data: |
           {"commands":[
             "git config --global user.name 'Julius-745'",
-            "git clone https://github.com/Julius-745/gkjwpro-pelayanan-be.git",
+            "git clone git@github.com:Julius-745/gkjwpro-pelayanan-be.git",
             "cp .env.production .env", 
             "mkdir -p data", 
             "chmod 755 data", 
