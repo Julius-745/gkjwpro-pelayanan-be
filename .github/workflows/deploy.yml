@@ -2,12 +2,23 @@ name: Sync on DOM Cloud
 
 'on':
   push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Setup SSH for GitHub
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ecdsa
+        chmod 600 ~/.ssh/id_ecdsa
+
+        # Skip strict host key checking
+        echo -e "Host github.com\n  StrictHostKeyChecking no\n  IdentityFile ~/.ssh/id_ecdsa\n" > ~/.ssh/config
+
     - name: Invoke deployment hook
       uses: distributhor/workflow-webhook@v3
       with:
@@ -15,14 +26,18 @@ jobs:
         webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
         webhook_auth: ${{ secrets.WEBHOOK_AUTH }}
         data: |
-          {"commands":[
-            "git config --global user.name 'Julius-745'",
-            "git clone git@github.com:Julius-745/gkjwpro-pelayanan-be.git",
-            "cp .env.production .env", 
-            "mkdir -p data", 
-            "chmod 755 data", 
-            "docker-compose up --build -d"
-          ],"wait":1}
+          {
+            "commands": [
+              "git config --global user.name 'Julius-745'",
+              "git clone git@github.com:Julius-745/gkjwpro-pelayanan-be.git",
+              "cp .env.production .env", 
+              "mkdir -p data", 
+              "chmod 755 data", 
+              "docker-compose up --build -d"
+            ],
+            "wait": 1
+          }
+
     - name: Check deployment status
       uses: distributhor/workflow-webhook@v3
       with:
