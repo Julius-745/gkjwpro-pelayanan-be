@@ -1,3 +1,4 @@
+
 name: Sync on DOM Cloud
 
 'on':
@@ -10,20 +11,37 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Invoke deployment hook
-      uses: distributhor/workflow-webhook@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
       with:
-        webhook_url: https://my.domcloud.co/api/githubdeploy
-        webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
-        webhook_auth: ${{ secrets.WEBHOOK_AUTH }}
-        data: |
-          {"commands":[
-            "git pull",
-            "mkdir -p data", 
-            "chmod 755 data", 
-            "cd public_html/",
-            "docker-compose up --build -d"
-          ],"wait":1}
+        bun-version: latest
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.bun/install/cache
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
+    
+    - name: Install dependencies
+      run: bun install --frozen-lockfile
+    
+    - name: Run linting
+      run: bun run lint
+    
+    # - name: Run tests
+    #   run: bun run test
+    #   env:
+    #     NODE_ENV: test
+    #     JWT_SECRET: test-jwt-secret-for-testing-only
+    #     DATABASE_URL: :memory
+    
+    - name: Build project
+      run: bun run build
     
     - name: Create production environment file
       run: |
@@ -45,10 +63,35 @@ jobs:
         # Logging
         LOG_LEVEL=info
         EOF
-
-    - name: Check deployment status
+    
+    - name: Invoke deployment hook
       uses: distributhor/workflow-webhook@v3
       with:
-        webhook_url: https://my.domcloud.co/api/githubdeploycheck
+        webhook_url: ${{ secrets.WEBHOOK_URL }}
         webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
         webhook_auth: ${{ secrets.WEBHOOK_AUTH }}
+        data: '{"commands":["git pull", "cp .env.production .env", "mkdir -p data", "chmod 755 data", "docker-compose up --build -d"]}'
+    
+    - name: Wait for deployment
+      run: sleep 60
+    
+    - name: Health check
+      run: |
+        echo "Starting health check for ${{ secrets.DOMAIN_URL }}/health"
+        for i in {1..10}; do
+          echo "🔍 Health check attempt $i/10..."
+          
+          # Try HTTPS first, then HTTP with SSL skip as fallback
+          if curl -f -s --connect-timeout 10 --max-time 30 "${{ secrets.DOMAIN_URL }}/health" >/dev/null 2>&1; then
+            echo "✅ HTTPS health check successful!"
+            exit 0
+          elif curl -f -s -k --connect-timeout 10 --max-time 30 "${{ secrets.DOMAIN_URL }}/health" >/dev/null 2>&1; then
+            echo "✅ Health check successful (SSL verification skipped)!"
+            exit 0
+          else
+            echo "⏳ Attempt $i failed, retrying in 30 seconds....."
+            sleep 30
+          fi
+        done
+        echo "❌ Deployment failed - health check timeout after 10 attempts"
+        exit 1
