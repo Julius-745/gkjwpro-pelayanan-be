@@ -1,7 +1,7 @@
-push:
-    branches: 
-      - main
-      - development
+name: Sync on DOM Cloud
+
+'on':
+  push:
 
 jobs:
   build:
