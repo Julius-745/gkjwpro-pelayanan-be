@@ -2,23 +2,14 @@ name: Sync on DOM Cloud
 
 'on':
   push:
-    branches:
+    branches: 
       - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Setup SSH for GitHub
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ecdsa
-        chmod 600 ~/.ssh/id_ecdsa
-
-        # Skip strict host key checking
-        echo -e "Host github.com\n  StrictHostKeyChecking no\n  IdentityFile ~/.ssh/id_ecdsa\n" > ~/.ssh/config
-
     - name: Invoke deployment hook
       uses: distributhor/workflow-webhook@v3
       with:
@@ -26,17 +17,34 @@ jobs:
         webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
         webhook_auth: ${{ secrets.WEBHOOK_AUTH }}
         data: |
-          {
-            "commands": [
-              "git config --global user.name 'Julius-745'",
-              "git clone git@github.com:Julius-745/gkjwpro-pelayanan-be.git",
-              "cp .env.production .env", 
-              "mkdir -p data", 
-              "chmod 755 data", 
-              "docker-compose up --build -d"
-            ],
-            "wait": 1
-          }
+          {"commands":[
+            "git pull",
+            "cp .env.production .env", 
+            "mkdir -p data", 
+            "chmod 755 data", 
+            "docker-compose up --build -d"
+          ],"wait":1}
+    
+    - name: Create production environment file
+      run: |
+        cat > .env.production << EOF
+        NODE_ENV=production
+        PORT=3000
+        
+        # JWT Authentication
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+        JWT_EXPIRES_IN=24h
+        
+        # SQLite Database
+        DATABASE_URL=${{ secrets.SQLITE_DB_PATH }}
+        
+        # Security Headers (using helmet)
+        CORS_ORIGIN=*
+        TRUST_PROXY=true
+        
+        # Logging
+        LOG_LEVEL=info
+        EOF
 
     - name: Check deployment status
       uses: distributhor/workflow-webhook@v3
