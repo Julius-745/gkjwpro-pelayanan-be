@@ -20,7 +20,6 @@ jobs:
         data: |
           {"commands":[
             "git pull",
-            "bun install",
             "mkdir -p data", 
             "chmod 755 data", 
             "docker-compose up --build -d"
