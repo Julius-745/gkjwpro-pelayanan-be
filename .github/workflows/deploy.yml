@@ -19,7 +19,6 @@ jobs:
         data: |
           {"commands":[
             "git pull",
-            "cp .env.production .env", 
             "mkdir -p data", 
             "chmod 755 data", 
             "docker-compose up --build -d"
