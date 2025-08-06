@@ -22,8 +22,8 @@ jobs:
             "git pull",
             "mkdir -p data", 
             "chmod 755 data", 
-            "bun docker:build",
-            "bun docker:build"
+            "bun install",
+            "bun start"
           ],"wait":1}
     
 
