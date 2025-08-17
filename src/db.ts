@@ -2,9 +2,6 @@ import Database from "better-sqlite3";
 
 const db = new Database("app.db");
 
-// Enable foreign key constraints
-db.pragma("foreign_keys = ON");
-
 // Create tables with proper relationships and constraints
 db.prepare(`
   CREATE TABLE IF NOT EXISTS pelayanLevel (
@@ -69,6 +66,36 @@ db.prepare(`
     FOREIGN KEY (id_ibadahCategory) REFERENCES ibadahCategory(id) ON DELETE RESTRICT,
     FOREIGN KEY (id_pelayanPosition) REFERENCES pelayanPosition(id) ON DELETE RESTRICT
   )
+`).run();
+
+// Enable foreign key constraints
+db.pragma("foreign_keys = ON");
+
+db.prepare(`
+
+  CREATE TABLE IF NOT EXISTS admin_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    role TEXT DEFAULT 'admin',
+    isActive BOOLEAN DEFAULT 1,
+    lastLogin DATETIME,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+
+  )
+
+`).run();
+
+db.prepare(`
+
+  CREATE TRIGGER IF NOT EXISTS update_admin_users_updatedAt 
+  AFTER UPDATE ON admin_users
+  BEGIN
+    UPDATE admin_users SET updatedAt = CURRENT_TIMESTAMP WHERE id = NEW.id;
+  END
+
 `).run();
 
 // Create indexes for better performance
