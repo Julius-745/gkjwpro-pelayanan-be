@@ -15,7 +15,52 @@
     }
   ],
   "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
+      "AuthUser": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "username": { "type": "string", "example": "john_doe" },
+          "email": { "type": "string", "format": "email", "example": "john@example.com" },
+          "role": { "type": "string", "enum": ["admin", "user"], "example": "user" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": { "type": "string", "minLength": 3, "example": "john_doe" },
+          "email": { "type": "string", "format": "email", "example": "john@example.com" },
+          "password": { "type": "string", "minLength": 6, "example": "securepassword" },
+          "role": { "type": "string", "enum": ["admin", "user"], "example": "user", "default": "user" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string", "example": "john_doe" },
+          "password": { "type": "string", "example": "securepassword" }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          "user": { "$ref": "#/components/schemas/AuthUser" },
+          "message": { "type": "string", "example": "Login successful" }
+        }
+      },
       "User": {
         "type": "object",
         "properties": {
@@ -201,6 +246,53 @@
                     "version": { "type": "string", "example": "1.0.0" }
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth":{
+      "post": {
+        "summary": "Authentication",
+        "description": "Auth users",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AuthUser" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Authentication Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": { "$ref": "#/components/schemas/AuthUser" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or referenced record not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ValidationErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }

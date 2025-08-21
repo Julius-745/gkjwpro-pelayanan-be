@@ -2,6 +2,7 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
+import { requireRole } from "../middleware/authMiddleware";
 
 const pelayanPosition = new Hono();
 
@@ -9,7 +10,7 @@ const createPositionSchema = z.object({
   name: z.string().min(1, "Position name is required")
 });
 
-pelayanPosition.get("/", (c) => {
+pelayanPosition.get("/", requireRole(["admin"]), (c) => {
   try {
     const stmt = db.prepare("SELECT * FROM pelayanPosition ORDER BY createdAt DESC");
     const data = stmt.all();
@@ -19,7 +20,7 @@ pelayanPosition.get("/", (c) => {
   }
 });
 
-pelayanPosition.get("/:id", (c) => {
+pelayanPosition.get("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -39,7 +40,7 @@ pelayanPosition.get("/:id", (c) => {
   }
 });
 
-pelayanPosition.patch("/:id", async (c) => {
+pelayanPosition.patch("/:id", requireRole(["admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -70,7 +71,7 @@ pelayanPosition.patch("/:id", async (c) => {
   }
 });
 
-pelayanPosition.delete("/:id", (c) => {
+pelayanPosition.delete("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {

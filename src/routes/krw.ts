@@ -2,6 +2,7 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
+import { requireRole } from "../middleware/authMiddleware";
 
 const krw = new Hono();
 
@@ -9,7 +10,7 @@ const createKrwSchema = z.object({
   krw_name: z.string().min(1, "KRW name is required")
 });
 
-krw.get("/", (c) => {
+krw.get("/", requireRole(["admin"]), (c) => {
   try {
     const stmt = db.prepare("SELECT * FROM krw ORDER BY createdAt DESC");
     const data = stmt.all();
@@ -19,7 +20,7 @@ krw.get("/", (c) => {
   }
 });
 
-krw.get("/:id", (c) => {
+krw.get("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -39,7 +40,7 @@ krw.get("/:id", (c) => {
   }
 });
 
-krw.post("/", async (c) => {
+krw.post("/", requireRole(["admin"]), async (c) => {
   try {
     const body = await c.req.json();
     const validatedData = createKrwSchema.parse(body);
@@ -61,7 +62,7 @@ krw.post("/", async (c) => {
   }
 });
 
-krw.patch("/:id", async (c) => {
+krw.patch("/:id", requireRole(["admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -92,7 +93,7 @@ krw.patch("/:id", async (c) => {
   }
 });
 
-krw.delete("/:id", (c) => {
+krw.delete("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {

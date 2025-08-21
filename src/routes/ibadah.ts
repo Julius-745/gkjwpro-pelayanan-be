@@ -2,6 +2,7 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
+import { requireRole } from "../middleware/authMiddleware";
 
 const ibadah = new Hono();
 
@@ -18,7 +19,7 @@ const updateIbadahSchema = z.object({
 });
 
 // Get all ibadah with related data
-ibadah.get("/", (c) => {
+ibadah.get("/", requireRole(["admin"]), (c) => {
   try {
     const stmt = db.prepare(`
       SELECT 
@@ -49,7 +50,7 @@ ibadah.get("/", (c) => {
 });
 
 // Get ibadah by ID with related data
-ibadah.get("/:id", (c) => {
+ibadah.get("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -90,7 +91,7 @@ ibadah.get("/:id", (c) => {
 });
 
 // Create new ibadah
-ibadah.post("/", async (c) => {
+ibadah.post("/", requireRole(["admin"]), async (c) => {
   try {
     const body = await c.req.json();
     const validatedData = createIbadahSchema.parse(body);
@@ -131,7 +132,7 @@ ibadah.post("/", async (c) => {
 });
 
 // Update ibadah
-ibadah.patch("/:id", async (c) => {
+ibadah.patch("/:id", requireRole(["admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -198,7 +199,7 @@ ibadah.patch("/:id", async (c) => {
 });
 
 // Delete ibadah
-ibadah.delete("/:id", (c) => {
+ibadah.delete("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {

@@ -9,7 +9,7 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import fs from "fs";
 import dotenv from "dotenv";
 
-// Import routes
+// Import existing routes
 import users from "./routes/users";
 import pelayanLevel from "./routes/pelayanLevel";
 import pelayanPosition from "./routes/pelayananPosition";
@@ -17,10 +17,18 @@ import ibadahCategory from "./routes/ibadahCategory";
 import krw from "./routes/krw";
 import ibadah from "./routes/ibadah";
 
+// Import new auth routes
+import authRoutes from "./routes/auth";
+
 // Import middleware
 import { errorHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 import { rateLimiter } from "./middleware/rateLimiter";
+import { authenticateToken } from "./middleware/authMiddleware";
+
+// Import services
+import { AuthService } from "./services/authService";
+
 
 dotenv.config();
 
@@ -33,14 +41,18 @@ app.use("*", logger());
 app.use("*", secureHeaders());
 app.use("*", compress());
 app.use("*", cors({
-  origin: process.env.CORS_ORIGIN || "*",
+  origin: process.env.CORS_ORIGIN || process.env.ALLOWED_ORIGINS?.split(',') || ["http://localhost:3000"],
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 }));
 
 // Custom middleware
 app.use("*", requestLogger);
 app.use("*", rateLimiter);
+
+// Create default admin user on startup
+AuthService.createDefaultAdmin();
 
 // Serve OpenAPI JSON
 app.get("/swagger.json", (c) => {
@@ -77,19 +89,23 @@ app.get("/docs", (c) => {
 // Health check endpoint
 app.get("/health", (c) => {
   return c.json({ 
+    success: true,
     status: "ok", 
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || "1.0.0"
   });
 });
 
-// API routes
-app.route("/api/users", users);
-app.route("/api/pelayan-levels", pelayanLevel);
-app.route("/api/pelayan-positions", pelayanPosition);
-app.route("/api/ibadah-categories", ibadahCategory);
-app.route("/api/krw", krw);
-app.route("/api/ibadah", ibadah);
+// Auth routes (public)
+app.route("/api/auth", authRoutes);
+
+// Protected API routes
+app.route("/api/users", users.use("*", authenticateToken));
+app.route("/api/pelayan-levels", pelayanLevel.use("*", authenticateToken));
+app.route("/api/pelayan-positions", pelayanPosition.use("*", authenticateToken));
+app.route("/api/ibadah-categories", ibadahCategory.use("*", authenticateToken));
+app.route("/api/krw", krw.use("*", authenticateToken));
+app.route("/api/ibadah", ibadah.use("*", authenticateToken));
 
 // Root endpoint with API information
 app.get("/", (c) => {
@@ -100,6 +116,7 @@ app.get("/", (c) => {
     openapi: "./swagger.json",
     endpoints: {
       health: "/health",
+      auth: "/api/auth",
       users: "/api/users",
       pelayanLevels: "/api/pelayan-levels",
       pelayanPositions: "/api/pelayan-positions",
@@ -117,6 +134,7 @@ app.get("/api", (c) => {
     version: "1.0.0",
     endpoints: {
       health: "/health",
+      auth: "/api/auth",
       users: "/api/users",
       pelayanLevels: "/api/pelayan-levels",
       pelayanPositions: "/api/pelayan-positions",
@@ -140,7 +158,7 @@ const port = parseInt(process.env.PORT || "3000");
 
 console.log(`🚀 Server is running on port ${port}`);
 console.log(`📚 API Documentation: http://localhost:${port}/docs`);
-console.log(`📋 OpenAPI Spec: http://localhost:${port}/openapi.json`);
+console.log(`📋 OpenAPI Spec: http://localhost:${port}/swagger.json`);
 
 serve({
   fetch: app.fetch,

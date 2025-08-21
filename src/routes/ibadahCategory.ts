@@ -2,6 +2,7 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
+import { requireRole } from "../middleware/authMiddleware";
 
 const ibadahCategory = new Hono();
 
@@ -9,7 +10,7 @@ const createCategorySchema = z.object({
   categoryName: z.string().min(1, "Category name is required")
 });
 
-ibadahCategory.get("/", (c) => {
+ibadahCategory.get("/", requireRole(["admin"]), (c) => {
   try {
     const stmt = db.prepare("SELECT * FROM ibadahCategory ORDER BY createdAt DESC");
     const data = stmt.all();
@@ -19,7 +20,7 @@ ibadahCategory.get("/", (c) => {
   }
 });
 
-ibadahCategory.get("/:id", (c) => {
+ibadahCategory.get("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -39,7 +40,7 @@ ibadahCategory.get("/:id", (c) => {
   }
 });
 
-ibadahCategory.post("/", async (c) => {
+ibadahCategory.post("/", requireRole(["admin"]), async (c) => {
   try {
     const body = await c.req.json();
     const validatedData = createCategorySchema.parse(body);
@@ -61,7 +62,7 @@ ibadahCategory.post("/", async (c) => {
   }
 });
 
-ibadahCategory.patch("/:id", async (c) => {
+ibadahCategory.patch("/:id", requireRole(["admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -92,7 +93,7 @@ ibadahCategory.patch("/:id", async (c) => {
   }
 });
 
-ibadahCategory.delete("/:id", (c) => {
+ibadahCategory.delete("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {

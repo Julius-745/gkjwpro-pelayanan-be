@@ -2,6 +2,7 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
+import { requireRole } from "../middleware/authMiddleware";
 
 const users = new Hono();
 
@@ -21,7 +22,7 @@ const updateUserSchema = z.object({
 });
 
 // Get all users with related data
-users.get("/", (c) => {
+users.get("/", requireRole(["admin"]), (c) => {
   try {
     const stmt = db.prepare(`
       SELECT 
@@ -49,7 +50,7 @@ users.get("/", (c) => {
 });
 
 // Get user by ID with related data
-users.get("/:id", (c) => {
+users.get("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -87,7 +88,7 @@ users.get("/:id", (c) => {
 });
 
 // Create new user
-users.post("/", async (c) => {
+users.post("/", requireRole(["admin"]), async (c) => {
   try {
     const body = await c.req.json();
     const validatedData = createUserSchema.parse(body);
@@ -129,7 +130,7 @@ users.post("/", async (c) => {
 });
 
 // Update user
-users.patch("/:id", async (c) => {
+users.patch("/:id", requireRole(["admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -196,7 +197,7 @@ users.patch("/:id", async (c) => {
 });
 
 // Delete user
-users.delete("/:id", (c) => {
+users.delete("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {

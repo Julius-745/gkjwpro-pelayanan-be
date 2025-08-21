@@ -2,6 +2,7 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
+import { requireRole } from "../middleware/authMiddleware";
 
 const pelayanLevel = new Hono();
 
@@ -9,7 +10,7 @@ const createLevelSchema = z.object({
   levelName: z.string().min(1, "Level name is required")
 });
 
-pelayanLevel.get("/", (c) => {
+pelayanLevel.get("/", requireRole(["admin"]), (c) => {
   try {
     const stmt = db.prepare("SELECT * FROM pelayanLevel ORDER BY createdAt DESC");
     const data = stmt.all();
@@ -19,7 +20,7 @@ pelayanLevel.get("/", (c) => {
   }
 });
 
-pelayanLevel.get("/:id", (c) => {
+pelayanLevel.get("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -39,7 +40,7 @@ pelayanLevel.get("/:id", (c) => {
   }
 });
 
-pelayanLevel.post("/", async (c) => {
+pelayanLevel.post("/", requireRole(["admin"]), async (c) => {
   try {
     const body = await c.req.json();
     const validatedData = createLevelSchema.parse(body);
@@ -61,7 +62,7 @@ pelayanLevel.post("/", async (c) => {
   }
 });
 
-pelayanLevel.patch("/:id", async (c) => {
+pelayanLevel.patch("/:id", requireRole(["admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -92,7 +93,7 @@ pelayanLevel.patch("/:id", async (c) => {
   }
 });
 
-pelayanLevel.delete("/:id", (c) => {
+pelayanLevel.delete("/:id", requireRole(["admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
