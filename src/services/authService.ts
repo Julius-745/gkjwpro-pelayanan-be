@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import {sign, verify} from 'hono/jwt'
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { jwtConfig } from '../config/auth';
@@ -6,7 +6,7 @@ import db from '../db';
 import type { AdminUser, LoginRequest, RegisterRequest, JWTPayload, AuthResponse } from '../types/auth';
 
 const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
+  email: z.string().email('Email is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -60,15 +60,15 @@ export class AuthService {
   static async login(loginData: LoginRequest): Promise<AuthResponse> {
     try {
       const validatedData = loginSchema.parse(loginData);
-      const { username, password } = validatedData;
+      const { email, password } = validatedData;
 
-      const user = db.prepare('SELECT * FROM admin_users WHERE username = ? AND isActive = 1').get(username) as any;
+      const user = db.prepare('SELECT * FROM admin_users WHERE email = ? AND isActive = 1').get(email) as any;
 
       if (!user) {
         return { success: false, message: 'Invalid credentials' };
       }
 
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = await bcrypt.compare(password, user.password); 
 
       if (!isPasswordValid) {
         return { success: false, message: 'Invalid credentials' };
@@ -80,20 +80,18 @@ export class AuthService {
         userId: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        exp: Math.floor(Date.now() / 1000) + (60 * 60)
       };
 
-      const token = jwt.sign(payload, jwtConfig.secret, {
-        expiresIn: jwtConfig.expiresIn,
-        algorithm: jwtConfig.algorithm
-      });
+      const token = await sign(payload, jwtConfig.secret);
 
       const { password: _, ...userWithoutPassword } = user;
 
       return {
         success: true,
         message: 'Login successful',
-        token,
+        token: token,
         user: userWithoutPassword
       };
     } catch (error) {
@@ -105,22 +103,32 @@ export class AuthService {
     }
   }
 
-  static verifyToken(token: string): JWTPayload | null {
-    try {
-      const decoded = jwt.verify(token, jwtConfig.secret, {
-        algorithms: [jwtConfig.algorithm]
-      }) as JWTPayload;
-      
-      return decoded;
-    } catch (error) {
-      console.error('Token verification error:', error);
+  static async verifyToken(token: string): Promise<JWTPayload | null> {
+  try {
+    const decoded = await verify(token, jwtConfig.secret);
+
+    if (typeof decoded === "string") {
+      console.error("Unexpected string payload in token:", decoded);
       return null;
     }
+
+    return decoded as JWTPayload;
+  } catch (error: any) {
+    if (error.name === "TokenExpiredError") {
+      console.error("Token expired");
+    } else if (error.name === "JsonWebTokenError") {
+      console.error("Invalid token:", error.message);
+    } else {
+      console.error("Token verification error:", error);
+    }
+    return null;
   }
+}
+
 
   static getUserById(userId: number): AdminUser | null {
     try {
-      const user = db.prepare('SELECT id, username, email, role, isActive, lastLogin, createdAt, updatedAt FROM admin_users WHERE id = ? AND isActive = 1').get(userId) as AdminUser;
+      const user = db.prepare('SELECT id, username, email, role, isActive, lastLogin, createdAt, updatedAt FROM admin_users WHERE id = ? AND isActive = 1   ').get(userId) as AdminUser;
       return user || null;
     } catch (error) {
       console.error('Get user error:', error);

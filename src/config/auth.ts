@@ -1,6 +1,6 @@
+// In your auth config file
 import { z } from 'zod';
-
-// Load environment variables first
+import jwt from 'jsonwebtoken'
 import 'dotenv/config';
 
 const jwtConfigSchema = z.object({
@@ -9,15 +9,14 @@ const jwtConfigSchema = z.object({
   algorithm: z.literal('HS256').default('HS256'),
 });
 
-// Manual check first (optional - Zod will also catch this)
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
 
 const env = {
   secret: process.env.JWT_SECRET,
-  expiresIn: process.env.JWT_EXPIRES_IN || '24h',
-  algorithm: 'HS256' as const,
+  expiresIn: process.env.JWT_EXPIRES_IN || '1d',
+  algorithm: 'HS256' as jwt.Algorithm,
 };
 
 export const jwtConfig = jwtConfigSchema.parse(env);

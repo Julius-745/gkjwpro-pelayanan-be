@@ -2,9 +2,10 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
-import { requireRole } from "../middleware/authMiddleware";
+import { requireRole, authenticateToken } from "../middleware/authMiddleware";
 
 const pelayanPosition = new Hono();
+pelayanPosition.use("*", authenticateToken); 
 
 const createPositionSchema = z.object({
   name: z.string().min(1, "Position name is required")

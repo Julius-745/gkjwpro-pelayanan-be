@@ -37,19 +37,12 @@ const app = new Hono();
 app.use('/swagger.json', serveStatic({ path: './swagger.json' }));
 
 // Global middleware
-app.use("*", logger());
-app.use("*", secureHeaders());
-app.use("*", compress());
-app.use("*", cors({
+app.use("*", logger(), secureHeaders(), compress(), requestLogger, rateLimiter, compress() ,cors({
   origin: process.env.CORS_ORIGIN || process.env.ALLOWED_ORIGINS?.split(',') || ["http://localhost:3000"],
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
-
-// Custom middleware
-app.use("*", requestLogger);
-app.use("*", rateLimiter);
 
 // Create default admin user on startup
 AuthService.createDefaultAdmin();
@@ -67,11 +60,11 @@ app.get("/docs", (c) => {
     <html>
       <head>
         <title>Swagger UI</title>
-        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
       </head>
       <body>
         <div id="swagger-ui"></div>
-        <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
         <script>
           window.onload = function() {
             SwaggerUIBundle({

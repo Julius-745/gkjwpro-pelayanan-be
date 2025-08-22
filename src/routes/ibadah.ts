@@ -2,9 +2,11 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
-import { requireRole } from "../middleware/authMiddleware";
+import { requireRole, authenticateToken } from "../middleware/authMiddleware";
 
 const ibadah = new Hono();
+
+ibadah.use("*", authenticateToken); 
 
 const createIbadahSchema = z.object({
   id_users: z.number().int().positive("User ID must be a positive integer"),

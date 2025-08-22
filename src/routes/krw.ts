@@ -2,9 +2,10 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
-import { requireRole } from "../middleware/authMiddleware";
+import { requireRole, authenticateToken } from "../middleware/authMiddleware";
 
 const krw = new Hono();
+krw.use("*", authenticateToken); 
 
 const createKrwSchema = z.object({
   krw_name: z.string().min(1, "KRW name is required")

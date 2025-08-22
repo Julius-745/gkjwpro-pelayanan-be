@@ -2,9 +2,11 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
-import { requireRole } from "../middleware/authMiddleware";
+import { requireRole, authenticateToken } from "../middleware/authMiddleware";
 
 const pelayanLevel = new Hono();
+pelayanLevel.use("*", authenticateToken); 
+
 
 const createLevelSchema = z.object({
   levelName: z.string().min(1, "Level name is required")

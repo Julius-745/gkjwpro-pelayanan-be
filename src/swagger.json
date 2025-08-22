@@ -15,11 +15,16 @@
     }
   ],
   "components": {
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Access token is missing or invalid"
+      }
+    },
     "securitySchemes": {
-      "BearerAuth": {
+      "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": ""
       }
     },
     "schemas": {
@@ -46,10 +51,10 @@
       },
       "LoginRequest": {
         "type": "object",
-        "required": ["username", "password"],
+        "required": ["email", "password"],
         "properties": {
-          "username": { "type": "string", "example": "john_doe" },
-          "password": { "type": "string", "example": "securepassword" }
+          "email": { "type": "string", "example": "admin@example.com" },
+          "password": { "type": "string", "example": "admin123456" }
         }
       },
       "AuthResponse": {
@@ -252,16 +257,21 @@
         }
       }
     },
-    "/api/auth":{
+    "/api/auth/login":{
       "post": {
+         "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "Authentication",
         "description": "Auth users",
-        "tags": ["Auth"],
+        "tags": ["Authentication"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/AuthUser" }
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
             }
           }
         },
@@ -274,7 +284,7 @@
                   "type": "object",
                   "properties": {
                     "success": { "type": "boolean", "example": true },
-                    "data": { "$ref": "#/components/schemas/AuthUser" }
+                    "data": { "$ref": "#/components/schemas/LoginRequest" }
                   }
                 }
               }
@@ -301,6 +311,11 @@
     },
     "/api/users": {
       "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "summary": "Get all users",
         "description": "Retrieve all users with their related data",
         "tags": ["Users"],
@@ -1235,5 +1250,10 @@
         }
       }
     }
-  }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
 }

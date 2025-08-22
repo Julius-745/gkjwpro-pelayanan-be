@@ -28,6 +28,7 @@ export interface JWTPayload {
   role: string;
   iat?: number;
   exp?: number;
+  [key: string]: any
 }
 
 export interface AuthResponse {

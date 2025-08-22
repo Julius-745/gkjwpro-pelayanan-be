@@ -2,9 +2,11 @@
 import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
-import { requireRole } from "../middleware/authMiddleware";
+import { requireRole, authenticateToken } from "../middleware/authMiddleware";
 
 const ibadahCategory = new Hono();
+
+ibadahCategory.use("*", authenticateToken); 
 
 const createCategorySchema = z.object({
   categoryName: z.string().min(1, "Category name is required")

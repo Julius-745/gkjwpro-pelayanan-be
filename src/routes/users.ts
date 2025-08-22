@@ -3,8 +3,11 @@ import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
 import { requireRole } from "../middleware/authMiddleware";
+import { authenticateToken } from "../middleware/authMiddleware";
 
 const users = new Hono();
+
+users.use("*", authenticateToken); 
 
 // Validation schemas
 const createUserSchema = z.object({
@@ -21,8 +24,7 @@ const updateUserSchema = z.object({
   id_pelayanLevel: z.number().int().positive("Pelayan Level ID must be a positive integer").optional()
 });
 
-// Get all users with related data
-users.get("/", requireRole(["admin"]), (c) => {
+users.get("/", (c: any) => {
   try {
     const stmt = db.prepare(`
       SELECT 
