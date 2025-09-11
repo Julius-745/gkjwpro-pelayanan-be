@@ -35,14 +35,21 @@ dotenv.config();
 const app = new Hono();
 
 app.use('/swagger.json', serveStatic({ path: './swagger.json' }));
+app.use('/*', serveStatic({ root: './public' }));
 
 // Global middleware
-app.use("*", logger(), secureHeaders(), compress(), requestLogger, rateLimiter, compress() ,cors({
-  origin: process.env.CORS_ORIGIN || process.env.ALLOWED_ORIGINS?.split(',') || ["http://localhost:3000"],
-  allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
+app.use("*", logger(), secureHeaders(), compress(), requestLogger, rateLimiter, compress() ,
+cors({
+    origin: (origin) => {
+      const allowed = (process.env.ALLOWED_ORIGINS?.split(',') ?? ["http://localhost:3001"]);
+      if (!origin) return "http://localhost:3001"; // fallback for server-side calls
+      return allowed.includes(origin) ? origin : "null";
+    },
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
 // Create default admin user on startup
 AuthService.createDefaultAdmin();
@@ -59,8 +66,9 @@ app.get("/docs", (c) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Swagger UI</title>
+        <title>GKJWPRO Pelayanan API</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
       </head>
       <body>
         <div id="swagger-ui"></div>
@@ -94,7 +102,7 @@ app.route("/api/auth", authRoutes);
 
 // Protected API routes
 app.route("/api/users", users.use("*", authenticateToken));
-app.route("/api/pelayan-levels", pelayanLevel.use("*", authenticateToken));
+app.route("/api/pelayan-level", pelayanLevel.use("*", authenticateToken));
 app.route("/api/pelayan-positions", pelayanPosition.use("*", authenticateToken));
 app.route("/api/ibadah-categories", ibadahCategory.use("*", authenticateToken));
 app.route("/api/krw", krw.use("*", authenticateToken));
@@ -111,7 +119,7 @@ app.get("/", (c) => {
       health: "/health",
       auth: "/api/auth",
       users: "/api/users",
-      pelayanLevels: "/api/pelayan-levels",
+      pelayanLevels: "/api/pelayan-level",
       pelayanPositions: "/api/pelayan-positions",
       ibadahCategories: "/api/ibadah-categories",
       krw: "/api/krw",
@@ -129,7 +137,7 @@ app.get("/api", (c) => {
       health: "/health",
       auth: "/api/auth",
       users: "/api/users",
-      pelayanLevels: "/api/pelayan-levels",
+      pelayanLevels: "/api/pelayan-level",
       pelayanPositions: "/api/pelayan-positions",
       ibadahCategories: "/api/ibadah-categories",
       krw: "/api/krw",

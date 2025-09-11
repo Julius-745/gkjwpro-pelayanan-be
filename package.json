@@ -29,7 +29,7 @@
     "typescript-eslint": "^8.38.0"
   },
   "scripts": {
-    "dev": "bun --hot tsx src/index.ts",
+    "dev": "tsx --watch src/index.ts",
     "start": "node dist/index.js",
     "build": "build src/index.ts --outdir dist --target bun --minify",
     "test": "jest",

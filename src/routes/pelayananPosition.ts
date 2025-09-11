@@ -11,13 +11,92 @@ const createPositionSchema = z.object({
   name: z.string().min(1, "Position name is required")
 });
 
-pelayanPosition.get("/", requireRole(["admin"]), (c) => {
+const querySchema = z.object({
+  search: z.string().optional().default(''),
+  skip: z.coerce.number().int().nonnegative().default(0),
+  take: z.coerce.number().int().positive().max(100).default(10)
+})
+
+pelayanPosition.get("/", requireRole(["admin"]), async (c) => {
   try {
-    const stmt = db.prepare("SELECT * FROM pelayanPosition ORDER BY createdAt DESC");
-    const data = stmt.all();
-    return c.json({ success: true, data });
+    const queryResult = querySchema.safeParse(c.req.query());
+
+    if (!queryResult.success) {
+      console.error("Query validation failed:", queryResult.error);
+      return c.json({
+        success: false,
+        error: "Invalid query parameters",
+        details: queryResult.error.errors
+      }, 400);
+    }
+
+    const { search, skip, take } = queryResult.data;
+
+    let query = `
+      SELECT 
+        p.id,
+        p.name,
+        p.createdAt,
+        p.updatedAt
+      FROM pelayanPosition p
+    `;
+
+    const conditions: string[] = [];
+    const values: (string | number)[] = [];
+
+    if (search) {
+      conditions.push(`p.name LIKE ?`);
+      values.push(`%${search}%`);
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    query += ` ORDER BY p.createdAt DESC LIMIT ? OFFSET ?`;
+
+    const stmt = db.prepare(query);
+    const data = stmt.all(...values, take, skip);
+
+    // Build count query with same conditions
+    let countQuery = `SELECT COUNT(*) as total FROM pelayanPosition p`;
+    if (conditions.length > 0) {
+      countQuery += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    const countStmt = db.prepare(countQuery);
+    const countResult = countStmt.get(...values);
+
+    const total = countResult && typeof countResult === 'object' && 'total' in countResult
+      ? (countResult as { total: number }).total
+      : 0;
+
+    return c.json({
+      success: true,
+      data,
+      total,
+      skip,
+      take,
+      totalPages: Math.ceil(total / take),
+    });
   } catch (error) {
-    return c.json({ success: false, error: error || "Failed to fetch pelayan positions" }, 500);
+    console.error("Error in GET /pelayanPosition:", error);
+
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    } else {
+      console.error("Unknown error:", error);
+    }
+
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : JSON.stringify(error),
+        timestamp: new Date().toISOString()
+      },
+      500
+    );
   }
 });
 

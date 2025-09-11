@@ -20,10 +20,31 @@ const updateIbadahSchema = z.object({
   id_pelayanPosition: z.number().int().positive("Pelayan Position ID must be a positive integer").optional()
 });
 
+const querySchema = z.object({
+  search: z.string().optional(),
+  id_ibadahCategory: z.coerce.number().optional(),
+  id_pelayanPosition: z.coerce.number().optional(),
+  skip: z.coerce.number().int().nonnegative().default(0),
+  take: z.coerce.number().int().positive().max(100).default(10)
+})
+
 // Get all ibadah with related data
 ibadah.get("/", requireRole(["admin"]), (c) => {
   try {
-    const stmt = db.prepare(`
+    const queryResult = querySchema.safeParse(c.req.query());
+
+    if (!queryResult.success) {
+      console.error("Query validation failed:", queryResult.error);
+      return c.json({
+        success: false,
+        error: "Invalid query parameters",
+        details: queryResult.error.errors
+      }, 400);
+    }
+
+    const { search, id_ibadahCategory, id_pelayanPosition, skip, take } = queryResult.data;
+
+    let query = `
       SELECT 
         i.id,
         i.id_users,
@@ -42,14 +63,82 @@ ibadah.get("/", requireRole(["admin"]), (c) => {
       LEFT JOIN pelayanPosition pp ON i.id_pelayanPosition = pp.id
       LEFT JOIN krw k ON u.id_krw = k.id
       LEFT JOIN pelayanLevel pl ON u.id_pelayanLevel = pl.id
-      ORDER BY i.createdAt DESC
-    `);
-    const data = stmt.all();
-    return c.json({ success: true, data });
+    `;
+
+    const conditions: string[] = [];
+    const values: (string | number)[] = [];
+
+    if (search) {
+      conditions.push(`(u.name LIKE ? OR ic.categoryName LIKE ? OR pp.name LIKE ? OR k.krw_name LIKE ? OR pl.levelName LIKE ?)`);
+      for (let i = 0; i < 5; i++) {
+        values.push(`%${search}%`);
+      }
+    }
+    if (id_ibadahCategory !== undefined) {
+      conditions.push(`i.id_ibadahCategory = ?`);
+      values.push(id_ibadahCategory);
+    }
+    if (id_pelayanPosition !== undefined) {
+      conditions.push(`i.id_pelayanPosition = ?`);
+      values.push(id_pelayanPosition);
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    query += ` ORDER BY i.createdAt DESC LIMIT ? OFFSET ?`;
+
+    const stmt = db.prepare(query);
+    const data = stmt.all(...values, take, skip);
+
+    // Build count query with same conditions
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM ibadah i
+      LEFT JOIN users u ON i.id_users = u.id
+      LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
+      LEFT JOIN pelayanPosition pp ON i.id_pelayanPosition = pp.id
+      LEFT JOIN krw k ON u.id_krw = k.id
+      LEFT JOIN pelayanLevel pl ON u.id_pelayanLevel = pl.id
+    `;
+    if (conditions.length > 0) {
+      countQuery += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    const countStmt = db.prepare(countQuery);
+    const countResult = countStmt.get(...values);
+
+    const total = countResult && typeof countResult === 'object' && 'total' in countResult
+      ? (countResult as { total: number }).total
+      : 0;
+
+    return c.json({
+      success: true,
+      data,
+      total,
+      skip,
+      take,
+    });
   } catch (error) {
-    return c.json({ success: false, error: error || "Failed to fetch ibadah data" }, 500);
+    console.error("Error in GET /ibadahs:", error);
+
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch ibadah data",
+        timestamp: new Date().toISOString()
+      },
+      500
+    );
   }
 });
+
 
 // Get ibadah by ID with related data
 ibadah.get("/:id", requireRole(["admin"]), (c) => {

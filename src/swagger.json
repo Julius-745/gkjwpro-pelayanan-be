@@ -72,7 +72,7 @@
           "id": { "type": "integer", "example": 1 },
           "name": { "type": "string", "example": "John Doe" },
           "id_krw": { "type": "integer", "example": 1 },
-          "id_category": { "type": "integer", "example": 1 },
+          "id_ibadahCategory": { "type": "integer", "example": 1 },
           "id_pelayanLevel": { "type": "integer", "example": 1 },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" },
@@ -83,11 +83,11 @@
       },
       "CreateUser": {
         "type": "object",
-        "required": ["name", "id_krw", "id_category", "id_pelayanLevel"],
+        "required": ["name", "id_krw", "id_ibadahCategory", "id_pelayanLevel"],
         "properties": {
           "name": { "type": "string", "minLength": 1, "example": "John Doe" },
           "id_krw": { "type": "integer", "minimum": 1, "example": 1 },
-          "id_category": { "type": "integer", "minimum": 1, "example": 1 },
+          "id_ibadahCategory": { "type": "integer", "minimum": 1, "example": 1 },
           "id_pelayanLevel": { "type": "integer", "minimum": 1, "example": 1 }
         }
       },
@@ -96,7 +96,7 @@
         "properties": {
           "name": { "type": "string", "minLength": 1, "example": "John Doe" },
           "id_krw": { "type": "integer", "minimum": 1, "example": 1 },
-          "id_category": { "type": "integer", "minimum": 1, "example": 1 },
+          "id_ibadahCategory": { "type": "integer", "minimum": 1, "example": 1 },
           "id_pelayanLevel": { "type": "integer", "minimum": 1, "example": 1 }
         }
       },
@@ -319,6 +319,50 @@
         "summary": "Get all users",
         "description": "Retrieve all users with their related data",
         "tags": ["Users"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Search users by name"
+          },
+          {
+            "in": "query",
+            "name": "id_krw",
+            "schema": { "type": "integer" },
+            "required": false,
+            "description": "Filter by KRW ID"
+          },
+          {
+            "in": "query",
+            "name": "id_ibadahCategory",
+            "schema": { "type": "integer" },
+            "required": false,
+            "description": "Filter by ibadah category ID"
+          },
+          {
+            "in": "query",
+            "name": "id_pelayanLevel",
+            "schema": { "type": "integer" },
+            "required": false,
+            "description": "Filter by pelayan level ID"
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "schema": { "type": "integer", "default": 0 },
+            "required": false,
+            "description": "Number of records to skip (for pagination)"
+          },
+          {
+            "in": "query",
+            "name": "take",
+            "schema": { "type": "integer", "default": 10, "maximum": 100 },
+            "required": false,
+            "description": "Number of records to return (max 100)"
+          }
+         ],
         "responses": {
           "200": {
             "description": "List of users",
@@ -570,6 +614,29 @@
         "summary": "Get all ibadah categories",
         "description": "Retrieve all worship service categories",
         "tags": ["Ibadah Categories"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Search Ibadah Categories by name"
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "schema": { "type": "integer", "default": 0 },
+            "required": false,
+            "description": "Number of records to skip (for pagination)"
+          },
+          {
+            "in": "query",
+            "name": "take",
+            "schema": { "type": "integer", "default": 10, "maximum": 100 },
+            "required": false,
+            "description": "Number of records to return (max 100)"
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of ibadah categories",
@@ -821,6 +888,29 @@
         "summary": "Get all KRWs",
         "description": "Retrieve all KRW entries",
         "tags": ["KRW"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Search KRW by name"
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "schema": { "type": "integer", "default": 0 },
+            "required": false,
+            "description": "Number of records to skip (for pagination)"
+          },
+          {
+            "in": "query",
+            "name": "take",
+            "schema": { "type": "integer", "default": 10, "maximum": 100 },
+            "required": false,
+            "description": "Number of records to return (max 100)"
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of KRWs",
@@ -933,13 +1023,36 @@
         "summary": "Get all Pelayan Positions",
         "description": "Retrieve all positions",
         "tags": ["Pelayan Positions"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Search Pelayanan Position by name"
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "schema": { "type": "integer", "default": 0 },
+            "required": false,
+            "description": "Number of records to skip (for pagination)"
+          },
+          {
+            "in": "query",
+            "name": "take",
+            "schema": { "type": "integer", "default": 10, "maximum": 100 },
+            "required": false,
+            "description": "Number of records to return (max 100)"
+          }
+        ],
         "responses": {
           "200": { "description": "List of positions" },
           "500": { "description": "Internal Server Error" }
         }
       }
     },
-    "/api/pelayan-positions/{id}": {
+    "/api/pelayan-position/{id}": {
       "get": {
         "summary": "Get Position by ID",
         "tags": ["Pelayan Positions"],
@@ -999,11 +1112,156 @@
         }
       }
     },
-    "/api/ibadahs": {
+    "/api/pelayan-level": {
+      "get": {
+        "summary": "Get all Pelayan Levels",
+        "description": "Retrieve all level",
+        "tags": ["Pelayan Levels"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Search Pelayanan Level by name"
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "schema": { "type": "integer", "default": 0 },
+            "required": false,
+            "description": "Number of records to skip (for pagination)"
+          },
+          {
+            "in": "query",
+            "name": "take",
+            "schema": { "type": "integer", "default": 10, "maximum": 100 },
+            "required": false,
+            "description": "Number of records to return (max 100)"
+          }
+        ],
+        "responses": {
+          "200": { "description": "List of positions" },
+          "500": { "description": "Internal Server Error" }
+        }
+      }
+    },
+    "/api/pelayan-level/{id}": {
+      "get": {
+        "summary": "Get Level by ID",
+        "tags": ["Pelayan Levels"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Level detail" },
+          "404": { "description": "Not Found" }
+        }
+      },
+      "patch": {
+        "summary": "Update Level",
+        "tags": ["Pelayan Levels"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Level"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Level updated" },
+          "400": { "description": "Bad Request" }
+        }
+      },
+      "delete": {
+        "summary": "Delete Level",
+        "tags": ["Pelayan Levels"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Deleted successfully" },
+          "404": { "description": "Not Found" }
+        }
+      }
+    },
+    "/api/ibadah": {
       "get": {
         "summary": "Get all ibadah schedules",
         "description": "Retrieve all users with their related data",
         "tags": ["Ibadahs"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Search ibadah by name"
+          },
+          {
+            "in": "query",
+            "name": "id_ibadahCategory",
+            "schema": { "type": "integer" },
+            "required": false,
+            "description": "Filter by Ibadah Category"
+          },
+          {
+            "in": "query",
+            "name": "id_pelayanPosition",
+            "schema": { "type": "integer" },
+            "required": false,
+            "description": "Filter by Pelayan Position ID"
+          },
+          {
+            "in": "query",
+            "name": "id_pelayanLevel",
+            "schema": { "type": "integer" },
+            "required": false,
+            "description": "Filter by pelayan level ID"
+          },
+          {
+            "in": "query",
+            "name": "id_krw",
+            "schema": { "type": "integer" },
+            "required": false,
+            "description": "Filter by KRW ID"
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "schema": { "type": "integer", "default": 0 },
+            "required": false,
+            "description": "Number of records to skip (for pagination)"
+          },
+          {
+            "in": "query",
+            "name": "take",
+            "schema": { "type": "integer", "default": 10, "maximum": 100 },
+            "required": false,
+            "description": "Number of records to return (max 100)"
+          }
+         ],
         "responses": {
           "200": {
             "description": "List of ibadah schedules",
@@ -1078,7 +1336,7 @@
         }
       }
     },
-    "/api/ibadahs/{id}": {
+    "/api/ibadah/{id}": {
       "get": {
         "summary": "Get ibadah schedule by ID",
         "description": "Retrieve a specific user by their ID with related data",

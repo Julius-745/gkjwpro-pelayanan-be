@@ -1,7 +1,7 @@
 // routes/ibadahCategory.ts
 import { Hono } from "hono";
 import db from "../db";
-import { z } from "zod";
+import { string, z } from "zod";
 import { requireRole, authenticateToken } from "../middleware/authMiddleware";
 
 const ibadahCategory = new Hono();
@@ -12,15 +12,95 @@ const createCategorySchema = z.object({
   categoryName: z.string().min(1, "Category name is required")
 });
 
+const querySchema = z.object({
+  search: z.string().optional().default(''),
+  skip: z.coerce.number().int().nonnegative().default(0),
+  take: z.coerce.number().int().positive().max(100).default(10)
+})
+
 ibadahCategory.get("/", requireRole(["admin"]), (c) => {
   try {
-    const stmt = db.prepare("SELECT * FROM ibadahCategory ORDER BY createdAt DESC");
-    const data = stmt.all();
-    return c.json({ success: true, data });
+    const queryResult = querySchema.safeParse(c.req.query());
+
+    if (!queryResult.success) {
+      console.error("Query validation failed:", queryResult.error);
+      return c.json({
+        success: false,
+        error: "Invalid query parameters",
+        details: queryResult.error.errors
+      }, 400);
+    }
+
+    const { search, skip, take } = queryResult.data;
+
+    let query = `
+      SELECT 
+        id,
+        categoryName,
+        createdAt,
+        updatedAt
+      FROM ibadahCategory
+    `;
+
+    const conditions: string[] = [];
+    const values: (string | number)[] = [];
+
+    if (search) {
+      conditions.push(`categoryName LIKE ?`);
+      values.push(`%${search}%`);
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    query += ` ORDER BY createdAt DESC LIMIT ? OFFSET ?`;
+
+    const stmt = db.prepare(query);
+    const data = stmt.all(...values, take, skip);
+
+    // Build count query with same conditions
+    let countQuery = `SELECT COUNT(*) as total FROM ibadahCategory`;
+    if (conditions.length > 0) {
+      countQuery += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    const countStmt = db.prepare(countQuery);
+    const countResult = countStmt.get(...values);
+
+    const total = countResult && typeof countResult === 'object' && 'total' in countResult
+      ? (countResult as { total: number }).total
+      : 0;
+
+    return c.json({
+      success: true,
+      data,
+      total,
+      skip,
+      take,
+      totalPages: Math.ceil(total / take),
+    });
   } catch (error) {
-    return c.json({ success: false, error: error || "Failed to fetch ibadah categories" }, 500);
+    console.error("Error in GET /ibadahCategory:", error);
+
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    } else {
+      console.error("Unknown error:", error);
+    }
+
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : JSON.stringify(error),
+        timestamp: new Date().toISOString()
+      },
+      500
+    );
   }
 });
+
 
 ibadahCategory.get("/:id", requireRole(["admin"]), (c) => {
   try {

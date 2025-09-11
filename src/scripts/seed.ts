@@ -58,7 +58,7 @@ const levelAdmin = (db.prepare('SELECT id FROM pelayanLevel WHERE levelName = ?'
 
 if (krw1 && catUmum && levelAdmin) {
   db.prepare(
-    `INSERT OR IGNORE INTO users (name, id_krw, id_category, id_pelayanLevel) VALUES (?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO users (name, id_krw, id_ibadahCategory, id_pelayanLevel) VALUES (?, ?, ?, ?)`
   ).run('Super Admin', krw1, catUmum, levelAdmin);
 }
 

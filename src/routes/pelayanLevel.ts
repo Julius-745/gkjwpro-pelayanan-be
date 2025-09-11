@@ -12,13 +12,92 @@ const createLevelSchema = z.object({
   levelName: z.string().min(1, "Level name is required")
 });
 
+const querySchema = z.object({
+  search: z.string().optional().default(''),
+  skip: z.coerce.number().int().nonnegative().default(0),
+  take: z.coerce.number().int().positive().max(100).default(10)
+})
+
 pelayanLevel.get("/", requireRole(["admin"]), (c) => {
   try {
-    const stmt = db.prepare("SELECT * FROM pelayanLevel ORDER BY createdAt DESC");
-    const data = stmt.all();
-    return c.json({ success: true, data });
+    const queryResult = querySchema.safeParse(c.req.query());
+
+    if (!queryResult.success) {
+      console.error("Query validation failed:", queryResult.error);
+      return c.json({
+        success: false,
+        error: "Invalid query parameters",
+        details: queryResult.error.errors
+      }, 400);
+    }
+
+    const { search, skip, take } = queryResult.data;
+
+    let query = `
+      SELECT 
+        pl.id,
+        pl.levelName,
+        pl.createdAt,
+        pl.updatedAt
+      FROM pelayanLevel pl
+    `;
+
+    const conditions: string[] = [];
+    const values: (string | number)[] = [];
+
+    if (search) {
+      conditions.push(`pl.levelName LIKE ?`);
+      values.push(`%${search}%`);
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    query += ` ORDER BY pl.createdAt DESC LIMIT ? OFFSET ?`;
+
+    const stmt = db.prepare(query);
+    const data = stmt.all(...values, take, skip);
+
+    // Build count query with same conditions
+    let countQuery = `SELECT COUNT(*) as total FROM pelayanLevel pl`;
+    if (conditions.length > 0) {
+      countQuery += ` WHERE ` + conditions.join(" AND ");
+    }
+
+    const countStmt = db.prepare(countQuery);
+    const countResult = countStmt.get(...values);
+
+    const total = countResult && typeof countResult === 'object' && 'total' in countResult
+      ? (countResult as { total: number }).total
+      : 0;
+
+    return c.json({
+      success: true,
+      data,
+      total,
+      skip,
+      take,
+      totalPages: Math.ceil(total / take),
+    });
   } catch (error) {
-    return c.json({ success: false, error: error || "Failed to fetch pelayan levels" }, 500);
+    console.error("Error in GET /pelayanLevel:", error);
+
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    } else {
+      console.error("Unknown error:", error);
+    }
+
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : JSON.stringify(error),
+        timestamp: new Date().toISOString()
+      },
+      500
+    );
   }
 });
 

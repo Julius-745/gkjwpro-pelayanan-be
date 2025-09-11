@@ -44,12 +44,12 @@ db.prepare(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     id_krw INTEGER NOT NULL,
-    id_category INTEGER NOT NULL,
+    id_ibadahCategory INTEGER NOT NULL,
     id_pelayanLevel INTEGER NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_krw) REFERENCES krw(id) ON DELETE RESTRICT,
-    FOREIGN KEY (id_category) REFERENCES ibadahCategory(id) ON DELETE RESTRICT,
+    FOREIGN KEY (id_ibadahCategory) REFERENCES ibadahCategory(id) ON DELETE RESTRICT,
     FOREIGN KEY (id_pelayanLevel) REFERENCES pelayanLevel(id) ON DELETE RESTRICT
   )
 `).run();
@@ -100,7 +100,7 @@ db.prepare(`
 
 // Create indexes for better performance
 db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_krw ON users(id_krw)`).run();
-db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_category ON users(id_category)`).run();
+db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_category ON users(id_ibadahCategory)`).run();
 db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_level ON users(id_pelayanLevel)`).run();
 db.prepare(`CREATE INDEX IF NOT EXISTS idx_ibadah_users ON ibadah(id_users)`).run();
 db.prepare(`CREATE INDEX IF NOT EXISTS idx_ibadah_category ON ibadah(id_ibadahCategory)`).run();
