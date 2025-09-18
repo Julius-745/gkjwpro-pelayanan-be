@@ -5,309 +5,137 @@ import { z } from "zod";
 import { requireRole, authenticateToken } from "../middleware/authMiddleware";
 
 const ibadah = new Hono();
+ibadah.use("*", authenticateToken);
 
-ibadah.use("*", authenticateToken); 
-
+// Schema for create/update
 const createIbadahSchema = z.object({
-  id_users: z.number().int().positive("User ID must be a positive integer"),
-  id_ibadahCategory: z.number().int().positive("Ibadah Category ID must be a positive integer"),
-  id_pelayanPosition: z.number().int().positive("Pelayan Position ID must be a positive integer")
+  id_ibadahCategory: z.number().int().positive(),
+  service_date: z.string().datetime(), // ISO datetime string
+  service_time: z.string() // "HH:MM" format
 });
 
 const updateIbadahSchema = z.object({
-  id_users: z.number().int().positive("User ID must be a positive integer").optional(),
-  id_ibadahCategory: z.number().int().positive("Ibadah Category ID must be a positive integer").optional(),
-  id_pelayanPosition: z.number().int().positive("Pelayan Position ID must be a positive integer").optional()
+  id_ibadahCategory: z.number().int().positive().optional(),
+  service_date: z.string().datetime().optional(),
+  service_time: z.string().optional()
 });
 
 const querySchema = z.object({
   search: z.string().optional(),
   id_ibadahCategory: z.coerce.number().optional(),
-  id_pelayanPosition: z.coerce.number().optional(),
   skip: z.coerce.number().int().nonnegative().default(0),
   take: z.coerce.number().int().positive().max(100).default(10)
-})
+});
 
-// Get all ibadah with related data
+// Get all ibadah with pagination, search, filter
 ibadah.get("/", requireRole(["admin"]), (c) => {
-  try {
-    const queryResult = querySchema.safeParse(c.req.query());
-
-    if (!queryResult.success) {
-      console.error("Query validation failed:", queryResult.error);
-      return c.json({
-        success: false,
-        error: "Invalid query parameters",
-        details: queryResult.error.errors
-      }, 400);
-    }
-
-    const { search, id_ibadahCategory, id_pelayanPosition, skip, take } = queryResult.data;
-
-    let query = `
-      SELECT 
-        i.id,
-        i.id_users,
-        i.id_ibadahCategory,
-        i.id_pelayanPosition,
-        i.createdAt,
-        i.updatedAt,
-        u.name as userName,
-        ic.categoryName,
-        pp.name as positionName,
-        k.krw_name,
-        pl.levelName
-      FROM ibadah i
-      LEFT JOIN users u ON i.id_users = u.id
-      LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
-      LEFT JOIN pelayanPosition pp ON i.id_pelayanPosition = pp.id
-      LEFT JOIN krw k ON u.id_krw = k.id
-      LEFT JOIN pelayanLevel pl ON u.id_pelayanLevel = pl.id
-    `;
-
-    const conditions: string[] = [];
-    const values: (string | number)[] = [];
-
-    if (search) {
-      conditions.push(`(u.name LIKE ? OR ic.categoryName LIKE ? OR pp.name LIKE ? OR k.krw_name LIKE ? OR pl.levelName LIKE ?)`);
-      for (let i = 0; i < 5; i++) {
-        values.push(`%${search}%`);
-      }
-    }
-    if (id_ibadahCategory !== undefined) {
-      conditions.push(`i.id_ibadahCategory = ?`);
-      values.push(id_ibadahCategory);
-    }
-    if (id_pelayanPosition !== undefined) {
-      conditions.push(`i.id_pelayanPosition = ?`);
-      values.push(id_pelayanPosition);
-    }
-
-    if (conditions.length > 0) {
-      query += ` WHERE ` + conditions.join(" AND ");
-    }
-
-    query += ` ORDER BY i.createdAt DESC LIMIT ? OFFSET ?`;
-
-    const stmt = db.prepare(query);
-    const data = stmt.all(...values, take, skip);
-
-    // Build count query with same conditions
-    let countQuery = `
-      SELECT COUNT(*) as total
-      FROM ibadah i
-      LEFT JOIN users u ON i.id_users = u.id
-      LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
-      LEFT JOIN pelayanPosition pp ON i.id_pelayanPosition = pp.id
-      LEFT JOIN krw k ON u.id_krw = k.id
-      LEFT JOIN pelayanLevel pl ON u.id_pelayanLevel = pl.id
-    `;
-    if (conditions.length > 0) {
-      countQuery += ` WHERE ` + conditions.join(" AND ");
-    }
-
-    const countStmt = db.prepare(countQuery);
-    const countResult = countStmt.get(...values);
-
-    const total = countResult && typeof countResult === 'object' && 'total' in countResult
-      ? (countResult as { total: number }).total
-      : 0;
-
-    return c.json({
-      success: true,
-      data,
-      total,
-      skip,
-      take,
-    });
-  } catch (error) {
-    console.error("Error in GET /ibadahs:", error);
-
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-    }
-
-    return c.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to fetch ibadah data",
-        timestamp: new Date().toISOString()
-      },
-      500
-    );
+  const queryResult = querySchema.safeParse(c.req.query());
+  if (!queryResult.success) {
+    return c.json({ success: false, error: queryResult.error.errors }, 400);
   }
+
+  const { search, id_ibadahCategory, skip, take } = queryResult.data;
+
+  let query = `
+    SELECT i.id, i.service_date, i.service_time, i.createdAt, i.updatedAt,
+           ic.categoryName
+    FROM ibadah i
+    LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
+  `;
+
+  const conditions: string[] = [];
+  const values: (string | number)[] = [];
+
+  if (search) {
+    conditions.push(`ic.categoryName LIKE ?`);
+    values.push(`%${search}%`);
+  }
+  if (id_ibadahCategory !== undefined) {
+    conditions.push(`i.id_ibadahCategory = ?`);
+    values.push(id_ibadahCategory);
+  }
+  if (conditions.length > 0) query += " WHERE " + conditions.join(" AND ");
+
+  query += " ORDER BY i.createdAt DESC LIMIT ? OFFSET ?";
+  const stmt = db.prepare(query);
+  const data = stmt.all(...values, take, skip);
+
+  // count
+  let countQuery = `
+    SELECT COUNT(*) as total
+    FROM ibadah i
+    LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
+  `;
+  if (conditions.length > 0) countQuery += " WHERE " + conditions.join(" AND ");
+  const countStmt = db.prepare(countQuery);
+  const row = countStmt.get(...values) as { total: number } | undefined;
+  const total = row?.total ?? 0;
+
+  return c.json({ success: true, data, total, skip, take });
 });
 
-
-// Get ibadah by ID with related data
+// Get single ibadah
 ibadah.get("/:id", requireRole(["admin"]), (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid ibadah ID" }, 400);
-    }
-
-    const stmt = db.prepare(`
-      SELECT 
-        i.id,
-        i.id_users,
-        i.id_ibadahCategory,
-        i.id_pelayanPosition,
-        i.createdAt,
-        i.updatedAt,
-        u.name as userName,
-        ic.categoryName,
-        pp.name as positionName,
-        k.krw_name,
-        pl.levelName
-      FROM ibadah i
-      LEFT JOIN users u ON i.id_users = u.id
-      LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
-      LEFT JOIN pelayanPosition pp ON i.id_pelayanPosition = pp.id
-      LEFT JOIN krw k ON u.id_krw = k.id
-      LEFT JOIN pelayanLevel pl ON u.id_pelayanLevel = pl.id
-      WHERE i.id = ?
-    `);
-    const ibadahData = stmt.get(id);
-
-    if (!ibadahData) {
-      return c.json({ success: false, error: "Ibadah not found" }, 404);
-    }
-
-    return c.json({ success: true, data: ibadahData });
-  } catch (error) {
-    return c.json({ success: false, error: error || "Failed to fetch ibadah" }, 500);
-  }
+  const id = Number(c.req.param("id"));
+  const stmt = db.prepare(`
+    SELECT i.id, i.service_date, i.service_time, i.createdAt, i.updatedAt,
+           ic.categoryName
+    FROM ibadah i
+    LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
+    WHERE i.id = ?
+  `);
+  const data = stmt.get(id);
+  if (!data) return c.json({ success: false, error: "Not found" }, 404);
+  return c.json({ success: true, data });
 });
 
-// Create new ibadah
+// Create ibadah
 ibadah.post("/", requireRole(["admin"]), async (c) => {
-  try {
-    const body = await c.req.json();
-    const validatedData = createIbadahSchema.parse(body);
+  const body = await c.req.json();
+  const validated = createIbadahSchema.parse(body);
 
-    // Check if referenced records exist
-    const userExists = db.prepare("SELECT id FROM users WHERE id = ?").get(validatedData.id_users);
-    const categoryExists = db.prepare("SELECT id FROM ibadahCategory WHERE id = ?").get(validatedData.id_ibadahCategory);
-    const positionExists = db.prepare("SELECT id FROM pelayanPosition WHERE id = ?").get(validatedData.id_pelayanPosition);
+  const exists = db.prepare("SELECT id FROM ibadahCategory WHERE id = ?").get(validated.id_ibadahCategory);
+  if (!exists) return c.json({ success: false, error: "Invalid category" }, 400);
 
-    if (!userExists) {
-      return c.json({ success: false, error: "User not found" }, 400);
-    }
-    if (!categoryExists) {
-      return c.json({ success: false, error: "Ibadah category not found" }, 400);
-    }
-    if (!positionExists) {
-      return c.json({ success: false, error: "Pelayan position not found" }, 400);
-    }
+  const stmt = db.prepare(`
+    INSERT INTO ibadah (id_ibadahCategory, service_date, service_time)
+    VALUES (?, ?, ?)
+  `);
+  const info = stmt.run(validated.id_ibadahCategory, validated.service_date, validated.service_time);
+  const newData = db.prepare("SELECT * FROM ibadah WHERE id = ?").get(info.lastInsertRowid);
 
-    const stmt = db.prepare(`
-      INSERT INTO ibadah (id_users, id_ibadahCategory, id_pelayanPosition) 
-      VALUES (?, ?, ?)
-    `);
-    const info = stmt.run(
-      validatedData.id_users,
-      validatedData.id_ibadahCategory,
-      validatedData.id_pelayanPosition
-    );
-
-    const newIbadah = db.prepare("SELECT * FROM ibadah WHERE id = ?").get(info.lastInsertRowid);
-    return c.json({ success: true, data: newIbadah }, 201);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return c.json({ success: false, error: error.errors }, 400);
-    }
-    return c.json({ success: false, error: "Failed to create ibadah" }, 500);
-  }
+  return c.json({ success: true, data: newData }, 201);
 });
 
 // Update ibadah
 ibadah.patch("/:id", requireRole(["admin"]), async (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid ibadah ID" }, 400);
+  const id = Number(c.req.param("id"));
+  const body = await c.req.json();
+  const validated = updateIbadahSchema.parse(body);
+
+  const updates: string[] = [];
+  const values: any[] = [];
+  for (const [k, v] of Object.entries(validated)) {
+    if (v !== undefined) {
+      updates.push(`${k} = ?`);
+      values.push(v);
     }
-
-    const body = await c.req.json();
-    const validatedData = updateIbadahSchema.parse(body);
-
-    // Check if ibadah exists
-    const ibadahExists = db.prepare("SELECT id FROM ibadah WHERE id = ?").get(id);
-    if (!ibadahExists) {
-      return c.json({ success: false, error: "Ibadah not found" }, 404);
-    }
-
-    // Validate foreign key references if provided
-    if (validatedData.id_users) {
-      const userExists = db.prepare("SELECT id FROM users WHERE id = ?").get(validatedData.id_users);
-      if (!userExists) {
-        return c.json({ success: false, error: "User not found" }, 400);
-      }
-    }
-
-    if (validatedData.id_ibadahCategory) {
-      const categoryExists = db.prepare("SELECT id FROM ibadahCategory WHERE id = ?").get(validatedData.id_ibadahCategory);
-      if (!categoryExists) {
-        return c.json({ success: false, error: "Ibadah category not found" }, 400);
-      }
-    }
-
-    if (validatedData.id_pelayanPosition) {
-      const positionExists = db.prepare("SELECT id FROM pelayanPosition WHERE id = ?").get(validatedData.id_pelayanPosition);
-      if (!positionExists) {
-        return c.json({ success: false, error: "Pelayan position not found" }, 400);
-      }
-    }
-
-    // Build dynamic update query
-    const updates: string[] = [];
-    const values = [];
-    Object.entries(validatedData).forEach(([key, value]) => {
-      if (value !== undefined) {
-        updates.push(`${key} = ?`);
-        values.push(value);
-      }
-    });
-
-    if (updates.length === 0) {
-      return c.json({ success: false, error: "No valid fields to update" }, 400);
-    }
-
-    values.push(id);
-    const stmt = db.prepare(`UPDATE ibadah SET ${updates.join(", ")} WHERE id = ?`);
-    stmt.run(...values);
-
-    const updatedIbadah = db.prepare("SELECT * FROM ibadah WHERE id = ?").get(id);
-    return c.json({ success: true, data: updatedIbadah });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return c.json({ success: false, error: error.errors }, 400);
-    }
-    return c.json({ success: false, error: "Failed to update ibadah" }, 500);
   }
+  if (updates.length === 0) return c.json({ success: false, error: "No fields" }, 400);
+
+  values.push(id);
+  db.prepare(`UPDATE ibadah SET ${updates.join(", ")} WHERE id = ?`).run(...values);
+  const updated = db.prepare("SELECT * FROM ibadah WHERE id = ?").get(id);
+
+  return c.json({ success: true, data: updated });
 });
 
 // Delete ibadah
 ibadah.delete("/:id", requireRole(["admin"]), (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid ibadah ID" }, 400);
-    }
-
-    const stmt = db.prepare("DELETE FROM ibadah WHERE id = ?");
-    const info = stmt.run(id);
-
-    if (info.changes === 0) {
-      return c.json({ success: false, error: "Ibadah not found" }, 404);
-    }
-
-    return c.json({ success: true, message: "Ibadah deleted successfully" });
-  } catch (error) {
-    return c.json({ success: false, error: error || "Failed to delete ibadah" }, 500);
-  }
+  const id = Number(c.req.param("id"));
+  const info = db.prepare("DELETE FROM ibadah WHERE id = ?").run(id);
+  if (info.changes === 0) return c.json({ success: false, error: "Not found" }, 404);
+  return c.json({ success: true, message: "Deleted" });
 });
 
 export default ibadah;

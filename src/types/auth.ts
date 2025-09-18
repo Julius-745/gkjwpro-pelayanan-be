@@ -37,3 +37,10 @@ export interface AuthResponse {
   user?: Partial<AdminUser>;
   token?: string;
 }
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}

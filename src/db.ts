@@ -15,7 +15,7 @@ db.prepare(`
 db.prepare(`
   CREATE TABLE IF NOT EXISTS pelayanPosition (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
+    positionName TEXT NOT NULL UNIQUE,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
   )
@@ -56,23 +56,32 @@ db.prepare(`
 
 db.prepare(`
   CREATE TABLE IF NOT EXISTS ibadah (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_users INTEGER NOT NULL,
-    id_ibadahCategory INTEGER NOT NULL,
-    id_pelayanPosition INTEGER NOT NULL,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_users) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (id_ibadahCategory) REFERENCES ibadahCategory(id) ON DELETE RESTRICT,
-    FOREIGN KEY (id_pelayanPosition) REFERENCES pelayanPosition(id) ON DELETE RESTRICT
-  )
-`).run();
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_ibadahCategory INTEGER NOT NULL,
+  service_date DATE NOT NULL,
+  service_time TIME NOT NULL,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_ibadahCategory) REFERENCES ibadahCategory(id) ON DELETE RESTRICT
+);`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS ibadahAssignments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_ibadah INTEGER NOT NULL,
+  id_users INTEGER NOT NULL,
+  id_pelayanPosition INTEGER NOT NULL,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_ibadah) REFERENCES ibadah(id) ON DELETE CASCADE,
+  FOREIGN KEY (id_users) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (id_pelayanPosition) REFERENCES pelayanPosition(id) ON DELETE RESTRICT
+);`).run();
 
 // Enable foreign key constraints
 db.pragma("foreign_keys = ON");
 
 db.prepare(`
-
   CREATE TABLE IF NOT EXISTS admin_users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -83,28 +92,26 @@ db.prepare(`
     lastLogin DATETIME,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-
   )
-
 `).run();
 
 db.prepare(`
-
   CREATE TRIGGER IF NOT EXISTS update_admin_users_updatedAt 
   AFTER UPDATE ON admin_users
   BEGIN
     UPDATE admin_users SET updatedAt = CURRENT_TIMESTAMP WHERE id = NEW.id;
   END
-
 `).run();
 
 // Create indexes for better performance
 db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_krw ON users(id_krw)`).run();
 db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_category ON users(id_ibadahCategory)`).run();
 db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_level ON users(id_pelayanLevel)`).run();
-db.prepare(`CREATE INDEX IF NOT EXISTS idx_ibadah_users ON ibadah(id_users)`).run();
 db.prepare(`CREATE INDEX IF NOT EXISTS idx_ibadah_category ON ibadah(id_ibadahCategory)`).run();
-db.prepare(`CREATE INDEX IF NOT EXISTS idx_ibadah_position ON ibadah(id_pelayanPosition)`).run();
+db.prepare(`CREATE INDEX IF NOT EXISTS idx_ibadah_assignments_ibadah ON ibadah_assignments(id_ibadah)`).run();
+db.prepare(`CREATE INDEX IF NOT EXISTS idx_ibadah_assignments_users ON ibadah_assignments(id_users)`).run();
+db.prepare(`CREATE INDEX IF NOT EXISTS idx_ibadah_assignments_position ON ibadah_assignments(id_pelayanPosition)`).run();
+
 
 // Create triggers for updating updatedAt timestamp
 db.prepare(`

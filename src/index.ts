@@ -16,6 +16,7 @@ import pelayanPosition from "./routes/pelayananPosition";
 import ibadahCategory from "./routes/ibadahCategory";
 import krw from "./routes/krw";
 import ibadah from "./routes/ibadah";
+import ibadahAssignments from "./routes/ibadahAssignment";
 
 // Import new auth routes
 import authRoutes from "./routes/auth";
@@ -107,6 +108,7 @@ app.route("/api/pelayan-positions", pelayanPosition.use("*", authenticateToken))
 app.route("/api/ibadah-categories", ibadahCategory.use("*", authenticateToken));
 app.route("/api/krw", krw.use("*", authenticateToken));
 app.route("/api/ibadah", ibadah.use("*", authenticateToken));
+app.route("/api/ibadahAssignments", ibadahAssignments.use("*", authenticateToken));
 
 // Root endpoint with API information
 app.get("/", (c) => {
@@ -123,7 +125,8 @@ app.get("/", (c) => {
       pelayanPositions: "/api/pelayan-positions",
       ibadahCategories: "/api/ibadah-categories",
       krw: "/api/krw",
-      ibadah: "/api/ibadah"
+      ibadah: "/api/ibadah",
+      ibadahAssignments: "/api/ibadahAssignments"
     }
   } as const);
 });
@@ -141,7 +144,8 @@ app.get("/api", (c) => {
       pelayanPositions: "/api/pelayan-positions",
       ibadahCategories: "/api/ibadah-categories",
       krw: "/api/krw",
-      ibadah: "/api/ibadah"
+      ibadah: "/api/ibadah",
+      ibadahAssignments: "/api/ibadahAssignments"
     },
     documentation: "/docs"
   });

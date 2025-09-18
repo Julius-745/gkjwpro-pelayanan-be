@@ -8,7 +8,7 @@ const pelayanPosition = new Hono();
 pelayanPosition.use("*", authenticateToken); 
 
 const createPositionSchema = z.object({
-  name: z.string().min(1, "Position name is required")
+  positionName: z.string().min(1, "Position name is required")
 });
 
 const querySchema = z.object({
@@ -35,7 +35,7 @@ pelayanPosition.get("/", requireRole(["admin"]), async (c) => {
     let query = `
       SELECT 
         p.id,
-        p.name,
+        p.positionName,
         p.createdAt,
         p.updatedAt
       FROM pelayanPosition p
@@ -45,7 +45,7 @@ pelayanPosition.get("/", requireRole(["admin"]), async (c) => {
     const values: (string | number)[] = [];
 
     if (search) {
-      conditions.push(`p.name LIKE ?`);
+      conditions.push(`p.positionName LIKE ?`);
       values.push(`%${search}%`);
     }
 
@@ -130,8 +130,8 @@ pelayanPosition.patch("/:id", requireRole(["admin"]), async (c) => {
     const body = await c.req.json();
     const validatedData = createPositionSchema.parse(body);
 
-    const stmt = db.prepare("UPDATE pelayanPosition SET name = ? WHERE id = ?");
-    const info = stmt.run(validatedData.name, id);
+    const stmt = db.prepare("UPDATE pelayanPosition SET positionName = ? WHERE id = ?");
+    const info = stmt.run(validatedData.positionName, id);
 
     if (info.changes === 0) {
       return c.json({ success: false, error: "Pelayan position not found" }, 404);
@@ -145,7 +145,7 @@ pelayanPosition.patch("/:id", requireRole(["admin"]), async (c) => {
     }
     /* @ts-expect-error: "type error" */
     if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
-      return c.json({ success: false, error: "Position name already exists" }, 400);
+      return c.json({ success: false, error: "Position position name already exists" }, 400);
     }
     return c.json({ success: false, error: "Failed to update pelayan position" }, 500);
   }
