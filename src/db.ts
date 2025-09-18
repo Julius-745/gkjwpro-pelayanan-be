@@ -66,7 +66,7 @@ db.prepare(`
 );`).run();
 
 db.prepare(`
-  CREATE TABLE IF NOT EXISTS ibadahAssignments (
+  CREATE TABLE IF NOT EXISTS ibadah_assignments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   id_ibadah INTEGER NOT NULL,
   id_users INTEGER NOT NULL,
