@@ -8,7 +8,6 @@ import { authenticateToken } from "../middleware/authMiddleware";
 interface UserQuery {
   search?: string
   id_krw?: string
-  id_ibadahCategory?: string
   id_pelayanLevel?: string
 }
 
@@ -20,21 +19,18 @@ users.use("*", authenticateToken);
 const createUserSchema = z.object({
   name: z.string().min(1, "Name is required"),
   id_krw: z.number().int().positive("KRW ID must be a positive integer"),
-  id_ibadahCategory: z.number().int().positive("Category ID must be a positive integer"),
   id_pelayanLevel: z.number().int().positive("Pelayan Level ID must be a positive integer")
 });
 
 const updateUserSchema = z.object({
   name: z.string().min(1, "Name is required").optional(),
   id_krw: z.number().int().positive("KRW ID must be a positive integer").optional(),
-  id_ibadahCategory: z.number().int().positive("Category ID must be a positive integer").optional(),
   id_pelayanLevel: z.number().int().positive("Pelayan Level ID must be a positive integer").optional()
 });
 
 const querySchema = z.object({
   search: z.string().optional(),
   id_krw: z.coerce.number().optional(),
-  id_ibadahCategory: z.coerce.number().optional(),
   id_pelayanLevel: z.coerce.number().optional(),
   skip: z.coerce.number().int().nonnegative().default(0),
   take: z.coerce.number().int().positive().max(100).default(10)
@@ -53,14 +49,13 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
       }, 400);
     }
 
-    const { search, id_krw, id_ibadahCategory, id_pelayanLevel, skip, take } = queryResult.data;
+    const { search, id_krw, id_pelayanLevel, skip, take } = queryResult.data;
 
     let query = `
       SELECT 
         u.id,
         u.name,
         u.id_krw,
-        u.id_ibadahCategory,
         u.id_pelayanLevel,
         u.createdAt,
         u.updatedAt,
@@ -69,7 +64,6 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
         pl.levelName
       FROM users u
       LEFT JOIN krw k ON u.id_krw = k.id
-      LEFT JOIN ibadahCategory ic ON u.id_ibadahCategory = ic.id
       LEFT JOIN pelayanLevel pl ON u.id_pelayanLevel = pl.id
     `;
 
@@ -83,10 +77,6 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
     if (id_krw !== undefined) {
       conditions.push(`u.id_krw = ?`);
       values.push(id_krw);
-    }
-    if (id_ibadahCategory !== undefined) {
-      conditions.push(`u.id_ibadahCategory = ?`);
-      values.push(id_ibadahCategory);
     }
     if (id_pelayanLevel !== undefined) {
       conditions.push(`u.id_pelayanLevel = ?`);
@@ -158,7 +148,6 @@ users.get("/:id", requireRole(["admin"]), (c) => {
         u.id,
         u.name,
         u.id_krw,
-        u.id_ibadahCategory,
         u.id_pelayanLevel,
         u.createdAt,
         u.updatedAt,
@@ -167,7 +156,6 @@ users.get("/:id", requireRole(["admin"]), (c) => {
         pl.levelName
       FROM users u
       LEFT JOIN krw k ON u.id_krw = k.id
-      LEFT JOIN ibadahCategory ic ON u.id_ibadahCategory = ic.id
       LEFT JOIN pelayanLevel pl ON u.id_pelayanLevel = pl.id
       WHERE u.id = ?
     `);
@@ -191,27 +179,22 @@ users.post("/", requireRole(["admin"]), async (c) => {
 
     // Check if referenced records exist
     const krwExists = db.prepare("SELECT id FROM krw WHERE id = ?").get(validatedData.id_krw);
-    const categoryExists = db.prepare("SELECT id FROM ibadahCategory WHERE id = ?").get(validatedData.id_ibadahCategory);
     const levelExists = db.prepare("SELECT id FROM pelayanLevel WHERE id = ?").get(validatedData.id_pelayanLevel);
 
     if (!krwExists) {
       return c.json({ success: false, error: "KRW not found" }, 400);
-    }
-    if (!categoryExists) {
-      return c.json({ success: false, error: "Ibadah category not found" }, 400);
     }
     if (!levelExists) {
       return c.json({ success: false, error: "Pelayan level not found" }, 400);
     }
 
     const stmt = db.prepare(`
-      INSERT INTO users (name, id_krw, id_ibadahCategory, id_pelayanLevel) 
+      INSERT INTO users (name, id_krw, id_pelayanLevel) 
       VALUES (?, ?, ?, ?)
     `);
     const info = stmt.run(
       validatedData.name,
       validatedData.id_krw,
-      validatedData.id_ibadahCategory,
       validatedData.id_pelayanLevel
     );
 
@@ -247,13 +230,6 @@ users.patch("/:id", requireRole(["admin"]), async (c) => {
       const krwExists = db.prepare("SELECT id FROM krw WHERE id = ?").get(validatedData.id_krw);
       if (!krwExists) {
         return c.json({ success: false, error: "KRW not found" }, 400);
-      }
-    }
-
-    if (validatedData.id_ibadahCategory) {
-      const categoryExists = db.prepare("SELECT id FROM ibadahCategory WHERE id = ?").get(validatedData.id_ibadahCategory);
-      if (!categoryExists) {
-        return c.json({ success: false, error: "Ibadah category not found" }, 400);
       }
     }
 

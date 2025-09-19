@@ -82,16 +82,16 @@ if (mainServiceKRW && sukapuraKRW && ibadahRaya1 && ibadahRaya2 && krwSukapura &
   
   const users = [
     // Main Service participants for Ibadah Raya I & II
-    { name: 'Pdt.Argo Daniel Satwiko', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: pendeta },
-    { name: 'Sdri.Vani Gian K.', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: saudari },
-    { name: 'Bp.Prijo Djatmiko', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: bapak },
-    { name: 'Ibu Sri Purwanti', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: ibu },
-    { name: 'Ibu Rully Aprilia', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: ibu },
-    { name: 'Ibu Elis Setiyaningsih', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: ibu },
-    { name: 'Sdri.Chrisnanda Yemima Putri', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: saudari },
-    { name: 'Ibu Sri Winarsih', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: ibu },
-    { name: 'Pnt.Triana Koeshartatik', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: panutan },
-    { name: 'Dkn.Eunike Agrivina Kristi', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya1, id_pelayanLevel: diaken },
+    { name: 'Pdt.Argo Daniel Satwiko', id_krw: mainServiceKRW, id_pelayanLevel: pendeta },
+    { name: 'Sdri.Vani Gian K.', id_krw: mainServiceKRW,  id_pelayanLevel: saudari },
+    { name: 'Bp.Prijo Djatmiko', id_krw: mainServiceKRW,  id_pelayanLevel: bapak },
+    { name: 'Ibu Sri Purwanti', id_krw: mainServiceKRW,  id_pelayanLevel: ibu },
+    { name: 'Ibu Rully Aprilia', id_krw: mainServiceKRW,  id_pelayanLevel: ibu },
+    { name: 'Ibu Elis Setiyaningsih', id_krw: mainServiceKRW,  id_pelayanLevel: ibu },
+    { name: 'Sdri.Chrisnanda Yemima Putri', id_krw: mainServiceKRW,  id_pelayanLevel: saudari },
+    { name: 'Ibu Sri Winarsih', id_krw: mainServiceKRW,  id_pelayanLevel: ibu },
+    { name: 'Pnt.Triana Koeshartatik', id_krw: mainServiceKRW,  id_pelayanLevel: panutan },
+    { name: 'Dkn.Eunike Agrivina Kristi', id_krw: mainServiceKRW,  id_pelayanLevel: diaken },
     { name: 'Sdr.Raffa', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya2, id_pelayanLevel: saudara },
     { name: 'Ibu Sih Mahanani', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya2, id_pelayanLevel: ibu },
     { name: 'Bp.Wimba Nugraha A.', id_krw: mainServiceKRW, id_ibadahCategory: ibadahRaya2, id_pelayanLevel: bapak },
@@ -107,8 +107,8 @@ if (mainServiceKRW && sukapuraKRW && ibadahRaya1 && ibadahRaya2 && krwSukapura &
 
   for (const user of users) {
     db.prepare(
-      `INSERT OR IGNORE INTO users (name, id_krw, id_ibadahCategory, id_pelayanLevel) VALUES (?, ?, ?, ?)`
-    ).run(user.name, user.id_krw, user.id_ibadahCategory, user.id_pelayanLevel);
+      `INSERT OR IGNORE INTO users (name, id_krw, id_pelayanLevel) VALUES (?, ?, ?)`
+    ).run(user.name, user.id_krw, user.id_pelayanLevel);
   }
 }
 

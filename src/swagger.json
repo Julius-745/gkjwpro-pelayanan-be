@@ -336,13 +336,6 @@
           },
           {
             "in": "query",
-            "name": "id_ibadahCategory",
-            "schema": { "type": "integer" },
-            "required": false,
-            "description": "Filter by ibadah category ID"
-          },
-          {
-            "in": "query",
             "name": "id_pelayanLevel",
             "schema": { "type": "integer" },
             "required": false,
