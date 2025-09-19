@@ -60,7 +60,6 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
         u.createdAt,
         u.updatedAt,
         k.krw_name,
-        ic.categoryName,
         pl.levelName
       FROM users u
       LEFT JOIN krw k ON u.id_krw = k.id
@@ -152,7 +151,6 @@ users.get("/:id", requireRole(["admin"]), (c) => {
         u.createdAt,
         u.updatedAt,
         k.krw_name,
-        ic.categoryName,
         pl.levelName
       FROM users u
       LEFT JOIN krw k ON u.id_krw = k.id
