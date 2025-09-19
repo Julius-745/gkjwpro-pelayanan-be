@@ -108,7 +108,7 @@ app.route("/api/pelayan-positions", pelayanPosition.use("*", authenticateToken))
 app.route("/api/ibadah-categories", ibadahCategory.use("*", authenticateToken));
 app.route("/api/krw", krw.use("*", authenticateToken));
 app.route("/api/ibadah", ibadah.use("*", authenticateToken));
-app.route("/api/ibadahAssignments", ibadahAssignments.use("*", authenticateToken));
+app.route("/api/ibadah-assignments", ibadahAssignments.use("*", authenticateToken));
 
 // Root endpoint with API information
 app.get("/", (c) => {
@@ -126,7 +126,7 @@ app.get("/", (c) => {
       ibadahCategories: "/api/ibadah-categories",
       krw: "/api/krw",
       ibadah: "/api/ibadah",
-      ibadahAssignments: "/api/ibadahAssignments"
+      ibadahAssignments: "/api/ibadah-assignments"
     }
   } as const);
 });
@@ -145,7 +145,7 @@ app.get("/api", (c) => {
       ibadahCategories: "/api/ibadah-categories",
       krw: "/api/krw",
       ibadah: "/api/ibadah",
-      ibadahAssignments: "/api/ibadahAssignments"
+      ibadahAssignments: "/api/ibadah-assignments"
     },
     documentation: "/docs"
   });

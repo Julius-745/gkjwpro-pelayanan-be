@@ -1508,7 +1508,7 @@
         }
       }
     },
-    "/api/ibadahAssignments": {
+    "/api/ibadah-assignments": {
       "get": {
         "summary": "Get all ibadah assignments",
         "description": "Retrieve all ibadah assignments with their related data (user, position, ibadah schedule)",
@@ -1634,7 +1634,7 @@
         }
       }
     },
-    "/api/ibadahAssignments/{id}": {
+    "/api/ibadah-assignments/{id}": {
       "get": {
         "summary": "Get ibadah assignment by ID",
         "description": "Retrieve a specific ibadah assignment by its ID with related data",
@@ -1766,7 +1766,7 @@
         }
       }
     },
-    "/api/ibadahAssignments/calendar": {
+    "/api/ibadah-assignments/calendar": {
       "get": {
         "summary": "Get ibadah assignments in calendar format",
         "description": "Retrieve all ibadah assignments formatted for use in a calendar or date range component.",
