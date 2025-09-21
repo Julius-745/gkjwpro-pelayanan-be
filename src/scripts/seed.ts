@@ -156,52 +156,52 @@ if (ibadahRaya1 && ibadahRaya2 && krwSukapura && pelayanPos && operatorPos &&
   // Service assignments with dates
   const serviceAssignments = [
     // Week 1 - Ibadah Raya I
-    { userName: 'Pdt.Argo Daniel Satwiko', categoryId: ibadahRaya1, positionId: pelayanPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Sdri.Vani Gian K.', categoryId: ibadahRaya1, positionId: operatorPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Bp.Prijo Djatmiko', categoryId: ibadahRaya1, positionId: organisPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Ibu Sri Purwanti', categoryId: ibadahRaya1, positionId: songLeaderPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Ibu Rully Aprilia', categoryId: ibadahRaya1, positionId: songLeaderPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Ibu Elis Setiyaningsih', categoryId: ibadahRaya1, positionId: balitaPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Sdri.Chrisnanda Yemima Putri', categoryId: ibadahRaya1, positionId: balitaPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Ibu Sri Winarsih', categoryId: ibadahRaya1, positionId: pratamaPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Pnt.Triana Koeshartatik', categoryId: ibadahRaya1, positionId: madyaPos, serviceDate: dates.week1, serviceTime: '08:00' },
-    { userName: 'Dkn.Eunike Agrivina Kristi', categoryId: ibadahRaya1, positionId: remajaPos, serviceDate: dates.week1, serviceTime: '08:00' },
+    { userName: 'Pdt.Argo Daniel Satwiko', categoryId: ibadahRaya1, positionId: pelayanPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Sdri.Vani Gian K.', categoryId: ibadahRaya1, positionId: operatorPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Bp.Prijo Djatmiko', categoryId: ibadahRaya1, positionId: organisPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Ibu Sri Purwanti', categoryId: ibadahRaya1, positionId: songLeaderPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Ibu Rully Aprilia', categoryId: ibadahRaya1, positionId: songLeaderPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Ibu Elis Setiyaningsih', categoryId: ibadahRaya1, positionId: balitaPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Sdri.Chrisnanda Yemima Putri', categoryId: ibadahRaya1, positionId: balitaPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Ibu Sri Winarsih', categoryId: ibadahRaya1, positionId: pratamaPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Pnt.Triana Koeshartatik', categoryId: ibadahRaya1, positionId: madyaPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Dkn.Eunike Agrivina Kristi', categoryId: ibadahRaya1, positionId: remajaPos, serviceDate: dates.week1, startServiceTime: '08:00', endServiceTime: '09:30' },
     
     // Week 1 - Ibadah Raya II
-    { userName: 'Pdt.Argo Daniel Satwiko', categoryId: ibadahRaya2, positionId: pelayanPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Sdr.Raffa', categoryId: ibadahRaya2, positionId: operatorPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Ibu Sih Mahanani', categoryId: ibadahRaya2, positionId: organisPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Bp.Wimba Nugraha A.', categoryId: ibadahRaya2, positionId: songLeaderPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Ibu Anindita Citta K.', categoryId: ibadahRaya2, positionId: songLeaderPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Ibu Elis Setiyaningsih', categoryId: ibadahRaya2, positionId: balitaPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Sdri.Chrisnanda Yemima Putri', categoryId: ibadahRaya2, positionId: balitaPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Ibu Sri Winarsih', categoryId: ibadahRaya2, positionId: pratamaPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Pnt.Triana Koeshartatik', categoryId: ibadahRaya2, positionId: madyaPos, serviceDate: dates.week1, serviceTime: '10:30' },
-    { userName: 'Dkn.Eunike Agrivina Kristi', categoryId: ibadahRaya2, positionId: remajaPos, serviceDate: dates.week1, serviceTime: '10:30' },
+    { userName: 'Pdt.Argo Daniel Satwiko', categoryId: ibadahRaya2, positionId: pelayanPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Sdr.Raffa', categoryId: ibadahRaya2, positionId: operatorPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Ibu Sih Mahanani', categoryId: ibadahRaya2, positionId: organisPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Bp.Wimba Nugraha A.', categoryId: ibadahRaya2, positionId: songLeaderPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Ibu Anindita Citta K.', categoryId: ibadahRaya2, positionId: songLeaderPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Ibu Elis Setiyaningsih', categoryId: ibadahRaya2, positionId: balitaPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Sdri.Chrisnanda Yemima Putri', categoryId: ibadahRaya2, positionId: balitaPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Ibu Sri Winarsih', categoryId: ibadahRaya2, positionId: pratamaPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Pnt.Triana Koeshartatik', categoryId: ibadahRaya2, positionId: madyaPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Dkn.Eunike Agrivina Kristi', categoryId: ibadahRaya2, positionId: remajaPos, serviceDate: dates.week1, startServiceTime: '10:00', endServiceTime: '11:30' },
     
     // Week 1 - KRW Sukapura
-    { userName: 'Pnt.Juni Wandi Purba', categoryId: krwSukapura, positionId: pelayanFirmanPos, serviceDate: dates.week1, serviceTime: '16:00' },
-    { userName: 'Pnt.Maria Widiastuti', categoryId: krwSukapura, positionId: pendampingPos, serviceDate: dates.week1, serviceTime: '16:00' },
-    { userName: 'Dkn.Debora Glestin R.', categoryId: krwSukapura, positionId: pendampingPos, serviceDate: dates.week1, serviceTime: '16:00' },
-    { userName: 'Bp.Riski Nugraha M.P', categoryId: krwSukapura, positionId: organisPos, serviceDate: dates.week1, serviceTime: '16:00' },
-    { userName: 'Ibu Nuri Hutami', categoryId: krwSukapura, positionId: songLeaderPos, serviceDate: dates.week1, serviceTime: '16:00' },
+    { userName: 'Pnt.Juni Wandi Purba', categoryId: krwSukapura, positionId: pelayanFirmanPos, serviceDate: dates.week1, startServiceTime: '13:00', endServiceTime: '15:30' },
+    { userName: 'Pnt.Maria Widiastuti', categoryId: krwSukapura, positionId: pendampingPos, serviceDate: dates.week1, startServiceTime: '13:00', endServiceTime: '15:30' },
+    { userName: 'Dkn.Debora Glestin R.', categoryId: krwSukapura, positionId: pendampingPos, serviceDate: dates.week1, startServiceTime: '13:00', endServiceTime: '15:30' },
+    { userName: 'Bp.Riski Nugraha M.P', categoryId: krwSukapura, positionId: organisPos, serviceDate: dates.week1, startServiceTime: '13:00', endServiceTime: '15:30' },
+    { userName: 'Ibu Nuri Hutami', categoryId: krwSukapura, positionId: songLeaderPos, serviceDate: dates.week1, startServiceTime: '13:00', endServiceTime: '15:30' },
 
     // Week 2 - Repeat assignments for next week
-    { userName: 'Pdt.Argo Daniel Satwiko', categoryId: ibadahRaya1, positionId: pelayanPos, serviceDate: dates.week2, serviceTime: '08:00' },
-    { userName: 'Sdri.Vani Gian K.', categoryId: ibadahRaya1, positionId: operatorPos, serviceDate: dates.week2, serviceTime: '08:00' },
-    { userName: 'Bp.Prijo Djatmiko', categoryId: ibadahRaya1, positionId: organisPos, serviceDate: dates.week2, serviceTime: '08:00' },
-    { userName: 'Ibu Sri Purwanti', categoryId: ibadahRaya1, positionId: songLeaderPos, serviceDate: dates.week2, serviceTime: '08:00' },
+    { userName: 'Pdt.Argo Daniel Satwiko', categoryId: ibadahRaya1, positionId: pelayanPos, serviceDate: dates.week2, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Sdri.Vani Gian K.', categoryId: ibadahRaya1, positionId: operatorPos, serviceDate: dates.week2, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Bp.Prijo Djatmiko', categoryId: ibadahRaya1, positionId: organisPos, serviceDate: dates.week2, startServiceTime: '08:00', endServiceTime: '09:30' },
+    { userName: 'Ibu Sri Purwanti', categoryId: ibadahRaya1, positionId: songLeaderPos, serviceDate: dates.week2, startServiceTime: '08:00', endServiceTime: '09:30' },
     
-    { userName: 'Pdt.Argo Daniel Satwiko', categoryId: ibadahRaya2, positionId: pelayanPos, serviceDate: dates.week2, serviceTime: '10:30' },
-    { userName: 'Sdr.Raffa', categoryId: ibadahRaya2, positionId: operatorPos, serviceDate: dates.week2, serviceTime: '10:30' },
-    { userName: 'Ibu Sih Mahanani', categoryId: ibadahRaya2, positionId: organisPos, serviceDate: dates.week2, serviceTime: '10:30' },
+    { userName: 'Pdt.Argo Daniel Satwiko', categoryId: ibadahRaya2, positionId: pelayanPos, serviceDate: dates.week2, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Sdr.Raffa', categoryId: ibadahRaya2, positionId: operatorPos, serviceDate: dates.week2, startServiceTime: '10:00', endServiceTime: '11:30' },
+    { userName: 'Ibu Sih Mahanani', categoryId: ibadahRaya2, positionId: organisPos, serviceDate: dates.week2, startServiceTime: '10:00', endServiceTime: '11:30' },
     
-    { userName: 'Pnt.Juni Wandi Purba', categoryId: krwSukapura, positionId: pelayanFirmanPos, serviceDate: dates.week2, serviceTime: '16:00' },
-    { userName: 'Bp.Riski Nugraha M.P', categoryId: krwSukapura, positionId: organisPos, serviceDate: dates.week2, serviceTime: '16:00' },
+    { userName: 'Pnt.Juni Wandi Purba', categoryId: krwSukapura, positionId: pelayanFirmanPos, serviceDate: dates.week2, startServiceTime: '13:00', endServiceTime: '15:30' },
+    { userName: 'Bp.Riski Nugraha M.P', categoryId: krwSukapura, positionId: organisPos, serviceDate: dates.week2, startServiceTime: '13:00', endServiceTime: '15:30' },
   ];
 
   const ibadahIdStmt = db.prepare(
-    `INSERT OR IGNORE INTO ibadah (id_ibadahCategory, service_date, service_time) VALUES (?, ?, ?)`
+    `INSERT OR IGNORE INTO ibadah (id_ibadahCategory, service_date, start_service_time, end_service_time) VALUES (?, ?, ?, ?)`
   );
 
   // --- Insert assignment (user ↔ ibadah ↔ position) ---
@@ -211,12 +211,12 @@ if (ibadahRaya1 && ibadahRaya2 && krwSukapura && pelayanPos && operatorPos &&
 
   for (const assignment of serviceAssignments) {
   // 1. Ensure ibadah event exists
-  ibadahIdStmt.run(assignment.categoryId, assignment.serviceDate, assignment.serviceTime);
+  ibadahIdStmt.run(assignment.categoryId, assignment.serviceDate, assignment.startServiceTime, assignment.endServiceTime);
 
   // 2. Get ibadah.id for this event
   const ibadahId = (db.prepare(
-    `SELECT id FROM ibadah WHERE id_ibadahCategory = ? AND service_date = ? AND service_time = ?`
-  ).get(assignment.categoryId, assignment.serviceDate, assignment.serviceTime) as { id?: number } | undefined)?.id;
+    `SELECT id FROM ibadah WHERE id_ibadahCategory = ? AND service_date = ? AND start_service_time = ? AND end_service_time = ?`
+  ).get(assignment.categoryId, assignment.serviceDate, assignment.startServiceTime, assignment.endServiceTime) as { id?: number } | undefined)?.id;
 
   // 3. Get user.id
   const userId = (db.prepare(`SELECT id FROM users WHERE name = ?`).get(assignment.userName) as { id?: number } | undefined)?.id;
@@ -233,7 +233,8 @@ console.log('✅ Church service seeding with dates done!');
 const verifyQuery = db.prepare(`
   SELECT 
   i.service_date,
-  i.service_time,
+  i.start_service_time,
+  i.end_service_time,
   ic.categoryName as service_category,
   u.name as user_name,
   pl.levelName as user_level,
@@ -246,7 +247,7 @@ JOIN users u ON ia.id_users = u.id
 JOIN krw k ON u.id_krw = k.id
 JOIN pelayanLevel pl ON u.id_pelayanLevel = pl.id
 JOIN pelayanPosition pp ON ia.id_pelayanPosition = pp.id
-ORDER BY i.service_date, i.service_time, ic.categoryName, pp.positionName;
+ORDER BY i.service_date, i.start_service_time, i.end_service_time, ic.categoryName, pp.positionName;
 `);
 
 const results = verifyQuery.all();
@@ -257,14 +258,15 @@ console.table(results);
 const summaryQuery = db.prepare(`
   SELECT 
     i.service_date,
-    i.service_time,
+    i.start_service_time,
+    i.end_service_time,
     ic.categoryName as service_category,
     COUNT(ia.id) as total_assignments
   FROM ibadah i
   JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
   LEFT JOIN ibadah_assignments ia ON i.id = ia.id_ibadah
-  GROUP BY i.id, i.service_date, i.service_time, ic.categoryName
-  ORDER BY i.service_date, i.service_time;
+  GROUP BY i.id, i.service_date, i.start_service_time, i.end_service_time, ic.categoryName
+  ORDER BY i.service_date, i.start_service_time, i.end_service_time;
 `);
 
 const summary = summaryQuery.all();

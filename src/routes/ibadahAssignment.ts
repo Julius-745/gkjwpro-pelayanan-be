@@ -37,7 +37,7 @@ assignments.get("/", requireRole(["admin"]), (c) => {
 
   let query = `
     SELECT ia.id, ia.id_ibadah, ia.id_users, ia.id_pelayanPosition, ia.createdAt, ia.updatedAt,
-           u.name as userName, pp.positionName, i.service_date, i.service_time, ic.categoryName
+           u.name as userName, pp.positionName, i.service_date, i.start_service_time, i.end_service_time,, ic.categoryName
     FROM ibadah_assignments ia
     LEFT JOIN users u ON ia.id_users = u.id
     LEFT JOIN pelayanPosition pp ON ia.id_pelayanPosition = pp.id
@@ -86,7 +86,7 @@ assignments.get("/", requireRole(["admin"]), (c) => {
 
 assignments.get("/calendar", requireRole(["admin"]), (c) => {
   const rows = db.prepare(`
-    SELECT ia.id, i.service_date, i.service_time, u.name as userName, 
+    SELECT ia.id, i.service_date, i.start_service_time, i.end_service_time,, u.name as userName, 
            pp.positionName, ic.categoryName
     FROM ibadah_assignments ia
     LEFT JOIN users u ON ia.id_users = u.id
@@ -99,7 +99,7 @@ assignments.get("/calendar", requireRole(["admin"]), (c) => {
   const grouped: Record<string, { categoryName: string; assignments: any[] }> = {};
 
   rows.forEach((row: any) => {
-    const key = `${row.service_date}T${row.service_time ?? "00:00"}-${row.categoryName}`;
+    const key = `${row.service_date}T${row.start_service_time ?? "00:00"} - ${row.start_service_time ?? "00:00"} -${row.categoryName}`;
     if (!grouped[key]) {
       grouped[key] = { categoryName: row.categoryName, assignments: [] };
     }

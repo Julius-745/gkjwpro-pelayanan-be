@@ -18,14 +18,14 @@ users.use("*", authenticateToken);
 // Validation schemas
 const createUserSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  id_krw: z.number().int().positive("KRW ID must be a positive integer"),
-  id_pelayanLevel: z.number().int().positive("Pelayan Level ID must be a positive integer")
+  id_krw: z.number().int(),
+  id_pelayanLevel: z.number().int()
 });
 
 const updateUserSchema = z.object({
   name: z.string().min(1, "Name is required").optional(),
-  id_krw: z.number().int().positive("KRW ID must be a positive integer").optional(),
-  id_pelayanLevel: z.number().int().positive("Pelayan Level ID must be a positive integer").optional()
+  id_krw: z.number().int(),
+  id_pelayanLevel: z.number().int()
 });
 
 const querySchema = z.object({
@@ -39,14 +39,16 @@ const querySchema = z.object({
 users.get("/", requireRole(["admin"]), (c: Context) => {
   try {
     const queryResult = querySchema.safeParse(c.req.query());
-    
+
     if (!queryResult.success) {
-      console.error("Query validation failed:", queryResult.error);
-      return c.json({ 
-        success: false, 
-        error: "Invalid query parameters",
-        details: queryResult.error.errors
-      }, 400);
+      return c.json(
+        {
+          success: false,
+          error: "Invalid query parameters",
+          details: queryResult.error.errors,
+        },
+        400
+      );
     }
 
     const { search, id_krw, id_pelayanLevel, skip, take } = queryResult.data;
@@ -59,7 +61,9 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
         u.id_pelayanLevel,
         u.createdAt,
         u.updatedAt,
+        k.id as krw_id,
         k.krw_name,
+        pl.id as pelayanLevel_id,
         pl.levelName
       FROM users u
       LEFT JOIN krw k ON u.id_krw = k.id
@@ -88,23 +92,43 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
 
     query += ` ORDER BY u.createdAt DESC LIMIT ? OFFSET ?`;
 
-    
     const stmt = db.prepare(query);
-    const data = stmt.all(...values, take, skip);
+    const rows = stmt.all(...values, take, skip);
 
-    // Build count query with same conditions
+    // Transform rows → nested objects
+    const data = rows.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      krw: row.krw_id
+        ? {
+            id: row.krw_id,
+            name: row.krw_name,
+            code: row.krw_code,
+          }
+        : null,
+      pelayanLevel: row.pelayanLevel_id
+        ? {
+            id: row.pelayanLevel_id,
+            name: row.levelName,
+            description: row.levelDescription,
+          }
+        : null,
+    }));
+
+    // Count query
     let countQuery = `SELECT COUNT(*) as total FROM users u`;
     if (conditions.length > 0) {
       countQuery += ` WHERE ` + conditions.join(" AND ");
     }
-    
+
     const countStmt = db.prepare(countQuery);
     const countResult = countStmt.get(...values);
-    
-    // Ensure we have a valid count result
-    const total = countResult && typeof countResult === 'object' && 'total' in countResult 
-      ? (countResult as { total: number }).total 
-      : 0;
+    const total =
+      countResult && typeof countResult === "object" && "total" in countResult
+        ? (countResult as { total: number }).total
+        : 0;
 
     return c.json({
       success: true,
@@ -115,18 +139,11 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
     });
   } catch (error) {
     console.error("Error in GET /users:", error);
-    
-    // More detailed error logging
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-    }
-    
     return c.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: error instanceof Error ? error.message : "Failed to fetch users",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       500
     );
@@ -188,7 +205,7 @@ users.post("/", requireRole(["admin"]), async (c) => {
 
     const stmt = db.prepare(`
       INSERT INTO users (name, id_krw, id_pelayanLevel) 
-      VALUES (?, ?, ?, ?)
+      VALUES (?, ?, ?)
     `);
     const info = stmt.run(
       validatedData.name,

@@ -57,7 +57,8 @@ db.prepare(`
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   id_ibadahCategory INTEGER NOT NULL,
   service_date DATE NOT NULL,
-  service_time TIME NOT NULL,
+  start_service_time TIME NOT NULL,
+  end_service_time TIME NOT NULL,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_ibadahCategory) REFERENCES ibadahCategory(id) ON DELETE RESTRICT
