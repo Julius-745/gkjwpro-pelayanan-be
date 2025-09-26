@@ -165,16 +165,15 @@
         "type": "object",
         "properties": {
           "id": { "type": "integer", "example": 1 },
-          "id_users": { "type": "integer", "example": 1 },
           "id_ibadahCategory": { "type": "integer", "example": 1 },
-          "id_pelayanPosition": { "type": "integer", "example": 1 },
+          "service_date": { "type": "string", "format": "date", "example": "2025-09-29" },
+          "start_service_time": { "type": "string", "example": "07:00" },
+          "end_service_time": { "type": "string", "example": "08:30" },
+          "stola": { "type": "string", "example": "Hijau" },
+          "dress_code": { "type": "string", "example": "Batik" },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" },
-          "userName": { "type": "string", "example": "John Doe" },
-          "categoryName": { "type": "string", "example": "Musik" },
-          "positionName": { "type": "string", "example": "Worship Leader" },
-          "krw_name": { "type": "string", "example": "KRW Jakarta" },
-          "levelName": { "type": "string", "example": "Senior" }
+          "categoryName": { "type": "string", "example": "Pagi" }
         }
       },
       "CreateIbadah": {
@@ -182,9 +181,11 @@
         "required": ["id_users", "id_ibadahCategory", "id_pelayanPosition"],
         "properties": {
           "id_ibadahCategory": { "type": "integer", "minimum": 1, "example": 1 },
+          "stola": { "type": "string", "example": "ungu" },
+          "dress_code": { "type": "string", "example": "batik" },
           "service_date": { "type": "string", "format": "date" },
-          "start_service_time": { "type": "string", "format": "date-time" },
-          "end_service_time": { "type": "string", "format": "date-time" }
+          "start_service_time": { "type": "string", "format": "date-time", "example": "08:00" },
+          "end_service_time": { "type": "string", "format": "date-time", "example": "09:00" }
         }
       },
       "UpdateIbadah": {
@@ -192,6 +193,37 @@
         "properties": {
           "id_users": { "type": "integer", "minimum": 1, "example": 1 },
           "id_ibadahCategory": { "type": "integer", "minimum": 1, "example": 1 },
+          "id_pelayanPosition": { "type": "integer", "minimum": 1, "example": 1 }
+        }
+      },
+      "IbadahAssignment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "id_ibadah": { "type": "integer", "example": 1 },
+          "id_users": { "type": "integer", "example": 1 },
+          "id_pelayanPosition": { "type": "integer", "example": 1 },
+          "userName": { "type": "string", "example": "Pdt. Argo Daniel Satwiko" },
+          "positionName": { "type": "string", "example": "Pelayan Firman" },
+          "service_date": { "type": "string", "format": "date", "example": "2025-09-29" },
+          "categoryName": { "type": "string", "example": "Pagi" },
+          "stola": { "type": "string", "example": "Hijau" },
+          "dress_code": { "type": "string", "example": "Batik" }
+        }
+      },
+      "CreateIbadahAssignment": {
+        "type": "object",
+        "required": ["id_ibadah", "id_users", "id_pelayanPosition"],
+        "properties": {
+          "id_ibadah": { "type": "integer", "minimum": 1, "example": 1 },
+          "id_users": { "type": "integer", "minimum": 1, "example": 1 },
+          "id_pelayanPosition": { "type": "integer", "minimum": 1, "example": 1 }
+        }
+      },
+      "UpdateIbadahAssignment": {
+        "type": "object",
+        "properties": {
+          "id_users": { "type": "integer", "minimum": 1, "example": 1 },
           "id_pelayanPosition": { "type": "integer", "minimum": 1, "example": 1 }
         }
       },
@@ -1823,8 +1855,108 @@
           }
         }
       }
+    },
+    "/api/ibadah-assignments/export/excel": {
+      "get": {
+        "summary": "Export ibadah assignments to Excel (Optimized)",
+        "description": "Optimized version for large datasets. Export all ibadah assignments in Excel format with better performance and memory usage. Recommended for datasets with 1000+ assignments.",
+        "tags": ["IbadahAssignments"],
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": { 
+              "type": "string", 
+              "format": "date",
+              "example": "2025-01-01"
+            },
+            "required": false,
+            "description": "Filter assignments from this date onwards (YYYY-MM-DD format)"
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": { 
+              "type": "string", 
+              "format": "date",
+              "example": "2025-12-31"
+            },
+            "required": false,
+            "description": "Filter assignments up to this date (YYYY-MM-DD format)"
+          },
+          {
+            "in": "query",
+            "name": "id_ibadahCategory",
+            "schema": { "type": "integer" },
+            "required": false,
+            "description": "Filter by specific ibadah category ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel file with ibadah assignments schedule (optimized version)",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "description": "Excel (.xlsx) file containing the assignments schedule"
+                }
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "description": "Attachment filename",
+                "schema": {
+                  "type": "string",
+                  "example": "attachment; filename=\"Jadwal_Pelayanan_2025-09-24.xlsx\""
+                }
+              },
+              "Content-Type": {
+                "description": "MIME type for Excel files",
+                "schema": {
+                  "type": "string",
+                  "example": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Admin role required",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error during export generation",
+            "content": {
+              "application/json": {
+                "schema": { 
+                  "$ref": "#/components/schemas/ErrorResponse",
+                  "example": {
+                    "success": false,
+                    "error": "Export failed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
-
   },
   "security": [
     {
