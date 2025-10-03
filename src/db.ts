@@ -43,6 +43,7 @@ db.prepare(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
+    active BOOLEAN DEFAULT 1,
     id_krw INTEGER NOT NULL,
     id_pelayanLevel INTEGER NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -55,6 +56,8 @@ db.prepare(`
 db.prepare(`
   CREATE TABLE IF NOT EXISTS ibadah (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  stola STRING DEFAULT '',
+  dress_code STRING DEFAULT '',
   id_ibadahCategory INTEGER NOT NULL,
   service_date DATE NOT NULL,
   start_service_time TIME NOT NULL,

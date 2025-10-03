@@ -10,9 +10,11 @@ ibadah.use("*", authenticateToken);
 // Schema for create/update
 const createIbadahSchema = z.object({
   id_ibadahCategory: z.number().int().positive(),
-  service_date: z.string().datetime(), // ISO datetime string
-  start_service_time: z.string(), // "HH:MM" format
-  end_service_time: z.string() // "HH:MM" format
+  stola: z.string().optional().default(''),
+  dress_code: z.string().optional().default(''),
+  service_date: z.string().datetime(), 
+  start_service_time: z.string(), 
+  end_service_time: z.string() 
 });
 
 const updateIbadahSchema = z.object({
@@ -100,8 +102,8 @@ ibadah.post("/", requireRole(["admin"]), async (c) => {
   if (!exists) return c.json({ success: false, error: "Invalid category" }, 400);
 
   const stmt = db.prepare(`
-    INSERT INTO ibadah (id_ibadahCategory, service_date, start_service_time, end_service_time)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO ibadah (id_ibadahCategory, stola, dress_code, service_date, start_service_time, end_service_time)
+    VALUES (?, ?, ?, ?, ?, ?)
   `);
   const info = stmt.run(validated.id_ibadahCategory, validated.service_date, validated.start_service_time, validated.end_service_time);
   const newData = db.prepare("SELECT * FROM ibadah WHERE id = ?").get(info.lastInsertRowid);

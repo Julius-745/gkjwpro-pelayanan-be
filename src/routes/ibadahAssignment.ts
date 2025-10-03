@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
 import { requireRole, authenticateToken } from "../middleware/authMiddleware";
+import XLSX from "xlsx";
 
 const assignments = new Hono();
 assignments.use("*", authenticateToken);
@@ -37,7 +38,7 @@ assignments.get("/", requireRole(["admin"]), (c) => {
 
   let query = `
     SELECT ia.id, ia.id_ibadah, ia.id_users, ia.id_pelayanPosition, ia.createdAt, ia.updatedAt,
-           u.name as userName, pp.positionName, i.service_date, i.start_service_time, i.end_service_time,, ic.categoryName
+          u.name as userName, pp.positionName, i.service_date, i.start_service_time, i.end_service_time, ic.categoryName
     FROM ibadah_assignments ia
     LEFT JOIN users u ON ia.id_users = u.id
     LEFT JOIN pelayanPosition pp ON ia.id_pelayanPosition = pp.id
@@ -86,8 +87,8 @@ assignments.get("/", requireRole(["admin"]), (c) => {
 
 assignments.get("/calendar", requireRole(["admin"]), (c) => {
   const rows = db.prepare(`
-    SELECT ia.id, i.service_date, i.start_service_time, i.end_service_time,, u.name as userName, 
-           pp.positionName, ic.categoryName
+    SELECT ia.id, i.service_date, i.start_service_time, i.end_service_time, u.name as userName,
+          pp.positionName, ic.categoryName
     FROM ibadah_assignments ia
     LEFT JOIN users u ON ia.id_users = u.id
     LEFT JOIN pelayanPosition pp ON ia.id_pelayanPosition = pp.id
@@ -124,6 +125,107 @@ assignments.get("/calendar", requireRole(["admin"]), (c) => {
   });
 
   return c.json({ success: true, data: events });
+});
+
+assignments.get("/export/excel", requireRole(["admin"]), (c) => {
+  try {
+    // Single query to get all needed data
+    const rawData = db.prepare(`
+      SELECT 
+        i.service_date,
+        i.start_service_time,
+        ic.categoryName,
+        ic.stola,
+        ic.dress_code,
+        pp.positionName,
+        u.name as userName,
+        pp.id as position_id,
+        ic.id as category_id
+      FROM ibadah_assignments ia
+      INNER JOIN users u ON ia.id_users = u.id
+      INNER JOIN pelayanPosition pp ON ia.id_pelayanPosition = pp.id
+      INNER JOIN ibadah i ON ia.id_ibadah = i.id
+      INNER JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
+      ORDER BY i.service_date ASC, i.start_service_time ASC, pp.positionName ASC
+    `).all();
+
+    // Process data efficiently
+    const dateColumns: string[] = [];
+    const timeColumns: string[] = [];
+    const positionSet = new Set<string>();
+    const dataMatrix = new Map<string, Map<string, string>>();
+
+    // Build unique dates, times, and positions
+    rawData.forEach((row: any) => {
+      const dateKey = row.service_date;
+      const timeKey = `${row.start_service_time || '00:00'}-${row.categoryName}`;
+      const columnKey = `${dateKey}|${timeKey}`;
+      
+      if (!dateColumns.includes(dateKey) || !timeColumns.includes(timeKey)) {
+        dateColumns.push(dateKey);
+        timeColumns.push(row.categoryName);
+      }
+      
+      positionSet.add(row.positionName);
+      
+      if (!dataMatrix.has(row.positionName)) {
+        dataMatrix.set(row.positionName, new Map());
+      }
+      
+      dataMatrix.get(row.positionName)!.set(columnKey, row.userName);
+    });
+
+    // Remove duplicates and sort
+    const uniqueDateTimes = [...new Set(rawData.map((row: any) => 
+      `${row.service_date}|${row.start_service_time || '00:00'}-${row.categoryName}`
+    ))].sort();
+
+    const sortedPositions = Array.from(positionSet).sort();
+
+    // Build Excel data
+    const headers = ['Pelayan/Position', ...uniqueDateTimes.map(dt => dt.split('|')[0])];
+    const timeHeaders = ['Waktu', ...uniqueDateTimes.map(dt => dt.split('|')[1].split('-')[1])];
+    
+    const excelData = [headers, timeHeaders];
+
+    // Add position rows
+    sortedPositions.forEach(position => {
+      const row = [position];
+      uniqueDateTimes.forEach(dateTime => {
+        const value = dataMatrix.get(position)?.get(dateTime) || '';
+        row.push(value);
+      });
+      excelData.push(row);
+    });
+
+    // Add footer rows
+    excelData.push(['Dresscode', ...Array(uniqueDateTimes.length).fill('Batik')]);
+    excelData.push(['Stola', ...Array(uniqueDateTimes.length).fill('Hijau')]);
+
+    // Create and return Excel file
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+    
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 25 }, // Position column
+      ...Array(uniqueDateTimes.length).fill({ wch: 15 })
+    ];
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Jadwal Pelayanan');
+    
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    const filename = `Jadwal_Pelayanan_${new Date().toISOString().split('T')[0]}.xlsx`;
+    
+    c.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    c.header('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    return c.body(buffer);
+    
+  } catch (error) {
+    console.error('Export error:', error);
+    return c.json({ success: false, error: 'Export failed' }, 500);
+  }
 });
 
 

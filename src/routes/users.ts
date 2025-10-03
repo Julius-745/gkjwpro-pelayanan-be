@@ -4,6 +4,7 @@ import db from "../db";
 import { z } from "zod";
 import { requireRole } from "../middleware/authMiddleware";
 import { authenticateToken } from "../middleware/authMiddleware";
+import { act } from "react";
 
 interface UserQuery {
   search?: string
@@ -30,6 +31,7 @@ const updateUserSchema = z.object({
 
 const querySchema = z.object({
   search: z.string().optional(),
+  active: z.coerce.boolean().optional(),
   id_krw: z.coerce.number().optional(),
   id_pelayanLevel: z.coerce.number().optional(),
   skip: z.coerce.number().int().nonnegative().default(0),
@@ -51,12 +53,13 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
       );
     }
 
-    const { search, id_krw, id_pelayanLevel, skip, take } = queryResult.data;
+    const { search, active, id_krw, id_pelayanLevel, skip, take } = queryResult.data;
 
     let query = `
       SELECT 
         u.id,
         u.name,
+        u.active,
         u.id_krw,
         u.id_pelayanLevel,
         u.createdAt,
@@ -85,6 +88,10 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
       conditions.push(`u.id_pelayanLevel = ?`);
       values.push(id_pelayanLevel);
     }
+    if (active !== undefined) {
+      conditions.push(`u.active = ?`);
+      values.push(active ? 1 : 0);
+    }
 
     if (conditions.length > 0) {
       query += ` WHERE ` + conditions.join(" AND ");
@@ -99,6 +106,7 @@ users.get("/", requireRole(["admin"]), (c: Context) => {
     const data = rows.map((row: any) => ({
       id: row.id,
       name: row.name,
+      active: row.active,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       krw: row.krw_id
@@ -204,8 +212,8 @@ users.post("/", requireRole(["admin"]), async (c) => {
     }
 
     const stmt = db.prepare(`
-      INSERT INTO users (name, id_krw, id_pelayanLevel) 
-      VALUES (?, ?, ?)
+      INSERT INTO users (name, active, id_krw, id_pelayanLevel) 
+      VALUES (?, ?, ?, ?)
     `);
     const info = stmt.run(
       validatedData.name,
