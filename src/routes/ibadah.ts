@@ -52,6 +52,7 @@ ibadah.get("/", requireRole(["admin"]), (c) => {
     i.end_service_time, 
     i.createdAt, 
     i.updatedAt,
+    ic.id as id_ibadahCategory,
     ic.categoryName
     FROM ibadah i
     LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
