@@ -12,16 +12,18 @@ const createIbadahSchema = z.object({
   id_ibadahCategory: z.number().int().positive(),
   stola: z.string().optional().default(''),
   dress_code: z.string().optional().default(''),
-  service_date: z.string().datetime(), 
-  start_service_time: z.string(), 
-  end_service_time: z.string() 
+  service_date: z.string().date(), // Changed from .datetime() to .date()
+  start_service_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Invalid time format. Expected HH:MM or HH:MM:SS"),
+  end_service_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Invalid time format. Expected HH:MM or HH:MM:SS")
 });
 
 const updateIbadahSchema = z.object({
   id_ibadahCategory: z.number().int().positive().optional(),
-  service_date: z.string().datetime().optional(),
-  start_service_time: z.string().optional(),
-  end_service_time: z.string().optional()
+  stola: z.string().optional(),
+  dress_code: z.string().optional(),
+  service_date: z.string().date().optional(), // Changed from .datetime()
+  start_service_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Invalid time format").optional(),
+  end_service_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Invalid time format").optional()
 });
 
 const querySchema = z.object({
@@ -41,8 +43,16 @@ ibadah.get("/", requireRole(["admin"]), (c) => {
   const { search, id_ibadahCategory, skip, take } = queryResult.data;
 
   let query = `
-    SELECT i.id, i.service_date, i.start_service_time, i.end_service_time, i.createdAt, i.updatedAt,
-           ic.categoryName
+    SELECT 
+    i.id, 
+    i.stola,
+    i.dress_code,
+    i.service_date, 
+    i.start_service_time, 
+    i.end_service_time, 
+    i.createdAt, 
+    i.updatedAt,
+    ic.categoryName
     FROM ibadah i
     LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
   `;
@@ -82,7 +92,7 @@ ibadah.get("/", requireRole(["admin"]), (c) => {
 ibadah.get("/:id", requireRole(["admin"]), (c) => {
   const id = Number(c.req.param("id"));
   const stmt = db.prepare(`
-    SELECT i.id, i.service_date, i.start_service_time, i.end_service_time,, i.createdAt, i.updatedAt,
+    SELECT i.id, i.stola, i.dress_code, i.service_date, i.start_service_time, i.end_service_time, i.createdAt, i.updatedAt,
            ic.categoryName
     FROM ibadah i
     LEFT JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
@@ -105,7 +115,14 @@ ibadah.post("/", requireRole(["admin"]), async (c) => {
     INSERT INTO ibadah (id_ibadahCategory, stola, dress_code, service_date, start_service_time, end_service_time)
     VALUES (?, ?, ?, ?, ?, ?)
   `);
-  const info = stmt.run(validated.id_ibadahCategory, validated.service_date, validated.start_service_time, validated.end_service_time);
+  const info = stmt.run(
+    validated.id_ibadahCategory, 
+    validated.stola, 
+    validated.dress_code, 
+    validated.service_date, 
+    validated.start_service_time, 
+    validated.end_service_time
+  );
   const newData = db.prepare("SELECT * FROM ibadah WHERE id = ?").get(info.lastInsertRowid);
 
   return c.json({ success: true, data: newData }, 201);

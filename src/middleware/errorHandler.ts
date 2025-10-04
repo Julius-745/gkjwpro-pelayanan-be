@@ -1,10 +1,40 @@
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { ZodError } from "zod";
 import { logger } from "../utils/logger";
 
 export const errorHandler = (err: Error, c: Context) => {
+  // Handle Zod validation errors
+  if (err instanceof ZodError) {
+    const formattedErrors = err.errors.map(e => ({
+      field: e.path.join('.'),
+      message: e.message,
+      code: e.code,
+      ...(e.received !== undefined && { received: e.received })
+    }));
+
+    // Pretty console logging
+    logger.error('\n🔴 Validation Error:');
+    formattedErrors.forEach(e => {
+      logger.error(`  • Field: ${e.field}`);
+      logger.error(`    Message: ${e.message}`);
+      if (e.received) logger.error(`    Received: ${JSON.stringify(e.received)}`);
+    });
+
+    return c.json(
+      {
+        success: false,
+        error: "Validation failed",
+        details: formattedErrors
+      },
+      400
+    );
+  }
+
+  // Log other errors
   logger.error("Application error:", err);
 
+  // Handle HTTP exceptions
   if (err instanceof HTTPException) {
     return c.json(
       { 
