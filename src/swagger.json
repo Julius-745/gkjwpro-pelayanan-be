@@ -223,6 +223,7 @@
       "UpdateIbadahAssignment": {
         "type": "object",
         "properties": {
+          "id_ibadah": { "type": "integer", "minimum": 1, "example": 1 },
           "id_users": { "type": "integer", "minimum": 1, "example": 1 },
           "id_pelayanPosition": { "type": "integer", "minimum": 1, "example": 1 }
         }

@@ -15,6 +15,7 @@ const createSchema = z.object({
 });
 
 const updateSchema = z.object({
+  id_ibadah: z.number().int().positive().optional(),
   id_users: z.number().int().positive().optional(),
   id_pelayanPosition: z.number().int().positive().optional()
 });
@@ -135,8 +136,8 @@ assignments.get("/export/excel", requireRole(["admin"]), (c) => {
         i.service_date,
         i.start_service_time,
         ic.categoryName,
-        ic.stola,
-        ic.dress_code,
+        i.stola,
+        i.dress_code,
         pp.positionName,
         u.name as userName,
         pp.id as position_id,
