@@ -113,48 +113,24 @@ if (mainServiceKRW && sukapuraKRW && pagiCategory && soreCategory && sukapuraCat
     { name: 'Ibu Sri winarsih', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: ibu },
     { name: 'Pnt Ice Yuliarto', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Ibu Endah', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: ibu },
-    { name: 'Pnt Maria Widiastuti', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Pnt Djumadi', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Dkn Eunike Agrivina K', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Pnt Budi Krisyanto', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Dkn Gradian Wahyu U', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Dkn Nur Asih Yupitasari', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     { name: 'Dkn Elisabeth', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Pnt Gamma Kristian A', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Pnt Conie Dwi Purwiranti', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Pnt Hadoko', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Dkn Haris Wahyu D', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     { name: 'Pnt Petrus Yuli Iswanto', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Pnt Teguh Prihandoko', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Dkn Gradian Wahyu U', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     { name: 'Dkn Debora Glestin Rosana', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Pnt Conie Dwi Purwiranti', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Pnt Hadoko', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Dkn Neunike Agrivina', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     { name: 'Dkn Dewi Sukmawati', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Dkn Harti Endarwati', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     { name: 'Dkn Pujianto Hari Wibowo', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     { name: 'Dkn Sam Probo Yunanto', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Dkn Haris Wahyu D', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Dkn Dewi sukmawati', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     { name: 'Dkn Diah Kristinawati', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Pnt Ice Yuliarto', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Pnt Rinto Oloan Kesuma S', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Dkn Harti Endarwati', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     { name: 'Pnt Juni Wandi Purba', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Dkn Harti Endarwati', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Dkn Diah Kristinawati', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
-    { name: 'Pnt Ice Yuliarto', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Pnt Sriyono Sundoro Hadi', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Pnt Sri Purwanti', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
     { name: 'Pnt Dwidjo Sih Sriwigyanto', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Pnt Juni Wandi Purba', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Pnt Sriyono Sundoro Hadi', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: panutan },
-    { name: 'Dkn Kris Endah Yuli Astuti', active: 1, id_krw: mainServiceKRW, id_pelayanLevel: diaken },
     
     // Sukapura participants
-    { name: 'Pnt Juni Wandi Purba', active: 1, id_krw: sukapuraKRW, id_pelayanLevel: panutan },
-    { name: 'Pnt Maria Widiastuti', active: 1, id_krw: sukapuraKRW, id_pelayanLevel: panutan },
     { name: 'Dkn Debora Glestin R.', active: 1, id_krw: sukapuraKRW, id_pelayanLevel: diaken },
     { name: 'Bp.Riski Nugraha M.P', active: 1, id_krw: sukapuraKRW, id_pelayanLevel: bapak },
     { name: 'Ibu Nuri Hutami', active: 1, id_krw: sukapuraKRW, id_pelayanLevel: ibu },
@@ -170,7 +146,13 @@ if (mainServiceKRW && sukapuraKRW && pagiCategory && soreCategory && sukapuraCat
 // --- Helper function to get next Sunday from a given date ---
 function getNextSunday(date: Date): Date {
   const nextSunday = new Date(date);
-  nextSunday.setDate(date.getDate() + (7 - date.getDay()));
+  const dayOfWeek = date.getDay();
+  if (dayOfWeek === 0) {
+    // Already Sunday, get next Sunday
+    nextSunday.setDate(date.getDate() + 7);
+  } else {
+    nextSunday.setDate(date.getDate() + (7 - dayOfWeek));
+  }
   return nextSunday;
 }
 
@@ -209,57 +191,70 @@ function getDressCodeAndStola(serviceDate: string, categoryName: string): { stol
   return { stola, dressCode };
 }
 
-// --- Seed ibadah with stola and dress_code ---
+// --- Generate all Sundays for the next 3 months ---
+// --- Generate all Sundays from October to December (this year) ---
+function generateSundaysForMonths(): string[] {
+  const year = new Date().getFullYear();
+  const startDate = new Date(year, 9, 1); // October = month index 9
+  const endDate = new Date(year, 11, 31); // December 31
+  const sundays: string[] = [];
+
+  // Find first Sunday in October
+  let current = new Date(startDate);
+  while (current.getDay() !== 0) {
+    current.setDate(current.getDate() + 1);
+  }
+
+  // Collect all Sundays until December 31
+  while (current <= endDate) {
+    sundays.push(formatDate(current));
+    current.setDate(current.getDate() + 7); // Next Sunday
+  }
+
+  return sundays;
+}
+
+
+
+// --- Seed ibadah with stola and dress_code for 3 months ---
 if (pagiCategory && soreCategory && sukapuraCategory) {
-  // Generate dates for the next few Sundays
-  const today = new Date();
-  const nextSunday = getNextSunday(today);
+  const dates = generateSundaysForMonths();
   
-  // Create dates for multiple weeks
-  const dates = [
-    formatDate(nextSunday),
-    formatDate(new Date(nextSunday.getTime() + 7 * 24 * 60 * 60 * 1000)),
-    formatDate(new Date(nextSunday.getTime() + 14 * 24 * 60 * 60 * 1000)),
-    formatDate(new Date(nextSunday.getTime() + 21 * 24 * 60 * 60 * 1000)),
-    formatDate(new Date(nextSunday.getTime() + 28 * 24 * 60 * 60 * 1000)),
-  ];
+  console.log(`📅 Generating services for ${dates.length} Sundays (next 3 months)`);
 
   // Service schedules with stola and dress_code
-  const serviceSchedules = [
-    // Regular weekly services
-    ...dates.map(date => {
-      const pagiDressCode = getDressCodeAndStola(date, 'Pagi');
-      const soreDressCode = getDressCodeAndStola(date, 'Sore');
-      const sukapuraDressCode = getDressCodeAndStola(date, 'Sukapura');
-      
-      return [
-        {
-          id_ibadahCategory: pagiCategory,
-          service_date: date,
-          start_service_time: '07:00',
-          end_service_time: '08:30',
-          stola: pagiDressCode.stola,
-          dress_code: pagiDressCode.dressCode
-        },
-        {
-          id_ibadahCategory: soreCategory,
-          service_date: date,
-          start_service_time: '16:00',
-          end_service_time: '17:30',
-          stola: soreDressCode.stola,
-          dress_code: soreDressCode.dressCode
-        },
-        {
-          id_ibadahCategory: sukapuraCategory,
-          service_date: date,
-          start_service_time: '08:00',
-          end_service_time: '09:30',
-          stola: sukapuraDressCode.stola,
-          dress_code: sukapuraDressCode.dressCode
-        }
-      ];
-    }).flat()
-  ];
+  const serviceSchedules = dates.map(date => {
+    const pagiDressCode = getDressCodeAndStola(date, 'Pagi');
+    const soreDressCode = getDressCodeAndStola(date, 'Sore');
+    const sukapuraDressCode = getDressCodeAndStola(date, 'Sukapura');
+    
+    return [
+      {
+        id_ibadahCategory: pagiCategory,
+        service_date: date,
+        start_service_time: '07:00',
+        end_service_time: '08:30',
+        stola: pagiDressCode.stola,
+        dress_code: pagiDressCode.dressCode
+      },
+      {
+        id_ibadahCategory: soreCategory,
+        service_date: date,
+        start_service_time: '16:00',
+        end_service_time: '17:30',
+        stola: soreDressCode.stola,
+        dress_code: soreDressCode.dressCode
+      },
+      {
+        id_ibadahCategory: sukapuraCategory,
+        service_date: date,
+        start_service_time: '08:00',
+        end_service_time: '09:30',
+        stola: sukapuraDressCode.stola,
+        dress_code: sukapuraDressCode.dressCode
+      }
+    ];
+  }).flat();
 
   // Insert ibadah records
   const ibadahStmt = db.prepare(
@@ -278,47 +273,81 @@ if (pagiCategory && soreCategory && sukapuraCategory) {
     );
   }
 
-  console.log('✅ Ibadah services seeded with stola and dress_code!');
+  console.log(`✅ ${serviceSchedules.length} Ibadah services seeded with stola and dress_code!`);
 }
 
-// Get position IDs for assignments (sample assignments)
-const positionIds = {
-  pelayanFirman: (db.prepare('SELECT id FROM pelayanPosition WHERE positionName = ?').get('Pelayan Firman') as { id?: number } | undefined)?.id,
-  pendamping: (db.prepare('SELECT id FROM pelayanPosition WHERE positionName = ?').get('Pendamping/Koordinator Ibadah') as { id?: number } | undefined)?.id,
-  panduWarta: (db.prepare('SELECT id FROM pelayanPosition WHERE positionName = ?').get('Pandu Warta') as { id?: number } | undefined)?.id,
-  lektor1: (db.prepare('SELECT id FROM pelayanPosition WHERE positionName = ?').get('Lektor 1') as { id?: number } | undefined)?.id,
-  lektor2: (db.prepare('SELECT id FROM pelayanPosition WHERE positionName = ?').get('Lektor 2') as { id?: number } | undefined)?.id,
-  operator: (db.prepare('SELECT id FROM pelayanPosition WHERE positionName = ?').get('Operator LCD') as { id?: number } | undefined)?.id,
-  organis: (db.prepare('SELECT id FROM pelayanPosition WHERE positionName = ?').get('Organis') as { id?: number } | undefined)?.id,
-};
+// Get all position IDs for comprehensive assignments
+const allPositions = db.prepare('SELECT id, positionName FROM pelayanPosition').all() as Array<{id: number, positionName: string}>;
+const allUsers = db.prepare('SELECT id, name, id_krw FROM users').all() as Array<{id: number, name: string, id_krw: number}>;
 
-// Sample assignments for the first few services
-if (positionIds.pelayanFirman && positionIds.pendamping && positionIds.panduWarta) {
-  const assignmentStmt = db.prepare(
-    `INSERT OR IGNORE INTO ibadah_assignments (id_ibadah, id_users, id_pelayanPosition) VALUES (?, ?, ?)`
-  );
+// --- Seed comprehensive assignments for all services ---
+if (allPositions.length > 0 && allUsers.length > 0) {
+  const allIbadahServices = db.prepare(`
+    SELECT i.id, i.id_ibadahCategory, i.service_date, ic.categoryName
+    FROM ibadah i
+    JOIN ibadahCategory ic ON i.id_ibadahCategory = ic.id
+    ORDER BY i.service_date ASC
+  `).all() as Array<{id: number, id_ibadahCategory: number, service_date: string, categoryName: string}>;
 
-  // Get some ibadah IDs and user IDs for sample assignments
-  const ibadahServices = db.prepare(`SELECT id, id_ibadahCategory, service_date FROM ibadah LIMIT 6`).all() as Array<{id: number, id_ibadahCategory: number, service_date: string}>;
-  const sampleUsers = db.prepare(`SELECT id, name FROM users LIMIT 10`).all() as Array<{id: number, name: string}>;
+  console.log(`📋 Creating assignments for ${allIbadahServices.length} services...`);
 
-  // Create sample assignments
-  ibadahServices.forEach((service, index) => {
-    const userIndex = index % sampleUsers.length;
-    const positionKeys = Object.keys(positionIds);
-    const positionIndex = index % positionKeys.length;
-    const positionKey = positionKeys[positionIndex] as keyof typeof positionIds;
-    const positionId = positionIds[positionKey];
-    
-    if (positionId && sampleUsers[userIndex]) {
-      assignmentStmt.run(service.id, sampleUsers[userIndex].id, positionId);
-    }
-  });
+  // Filter users by KRW
+  const mainServiceUsers = allUsers.filter(u => u.id_krw === mainServiceKRW);
+  const sukapuraUsers = allUsers.filter(u => u.id_krw === sukapuraKRW);
 
-  console.log('✅ Sample assignments created!');
+  const checkUserAlreadyAssigned = (id_ibadah: number, id_users: number) => {
+    const existing = db.prepare(`
+      SELECT id FROM ibadah_assignments WHERE id_ibadah = ? AND id_users = ?
+    `).get(id_ibadah, id_users);
+    return !!existing;
+  };
+
+  const checkPositionConflict = (id_ibadah: number, id_pelayanPosition: number) => {
+    const existing = db.prepare(`
+      SELECT id FROM ibadah_assignments WHERE id_ibadah = ? AND id_pelayanPosition = ?
+    `).get(id_ibadah, id_pelayanPosition);
+    return !!existing;
+  };
+
+  const insertAssignment = db.prepare(`
+    INSERT INTO ibadah_assignments (id_ibadah, id_users, id_pelayanPosition)
+    VALUES (?, ?, ?)
+  `);
+
+  let assignmentCount = 0;
+
+  for (const service of allIbadahServices) {
+    const eligibleUsers = service.categoryName === 'Sukapura' ? sukapuraUsers : mainServiceUsers;
+
+    allPositions.forEach((position, positionIndex) => {
+      const userOffset = positionIndex % eligibleUsers.length;
+      const assignedUser = eligibleUsers[userOffset];
+      if (!assignedUser) return;
+
+      // Validation logic (matches POST route)
+      if (checkUserAlreadyAssigned(service.id, assignedUser.id)) {
+        console.log(`⚠️ User ${assignedUser.name} already assigned for service ${service.id}, skipping.`);
+        return;
+      }
+      if (checkPositionConflict(service.id, position.id)) {
+        console.log(`⚠️ Position ${position.positionName} already filled for service ${service.id}, skipping.`);
+        return;
+      }
+
+      try {
+        insertAssignment.run(service.id, assignedUser.id, position.id);
+        assignmentCount++;
+      } catch (err) {
+        console.log(`⚠️ Error inserting assignment for service ${service.id}:`, err);
+      }
+    });
+  }
+
+  console.log(`✅ ${assignmentCount} valid assignments created!`);
 }
 
-console.log('✅ Church service seeding with stola and dress_code completed!');
+
+console.log('✅ Church service seeding with 3 months data completed!');
 
 // Verification query
 const verifyQuery = db.prepare(`
@@ -338,7 +367,23 @@ const verifyQuery = db.prepare(`
 `);
 
 const results = verifyQuery.all();
-console.log('\n📋 Service Schedule with Dress Codes:');
-console.table(results);
+console.log('\n📋 Service Schedule Summary (first 10):');
+console.table(results.slice(0, 10));
+
+// Summary statistics
+const stats = db.prepare(`
+  SELECT 
+    COUNT(DISTINCT i.id) as total_services,
+    COUNT(DISTINCT ia.id) as total_assignments,
+    COUNT(DISTINCT u.id) as total_users_assigned,
+    MIN(i.service_date) as first_service,
+    MAX(i.service_date) as last_service
+  FROM ibadah i
+  LEFT JOIN ibadah_assignments ia ON i.id = ia.id_ibadah
+  LEFT JOIN users u ON ia.id_users = u.id
+`).get();
+
+console.log('\n📊 Overall Statistics:');
+console.table([stats]);
 
 db.close();
