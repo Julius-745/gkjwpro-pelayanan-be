@@ -184,6 +184,7 @@
           "stola": { "type": "string", "example": "ungu" },
           "dress_code": { "type": "string", "example": "batik" },
           "service_date": { "type": "string", "format": "date" },
+          "tata_ibadah_link": {"type": "string", "example": "https://drive.google.com/file/d/1KfLa8w9lm34fTWi_l9ZtxOkLz6eZG8Qy/view?usp=sharing"},
           "start_service_time": { "type": "string", "format": "date-time", "example": "08:00" },
           "end_service_time": { "type": "string", "format": "date-time", "example": "09:00" }
         }

@@ -169,7 +169,7 @@ assignments.get("/", requireRole(["admin"]), (c) => {
 
   let query = `
     SELECT ia.id, ia.id_ibadah, ia.id_users, ia.id_pelayanPosition, ia.createdAt, ia.updatedAt,
-          u.name as userName, pp.positionName, i.service_date, i.start_service_time, i.end_service_time, ic.categoryName
+          u.name as userName, pp.positionName, i.tata_ibadah_link, i.service_date, i.start_service_time, i.end_service_time, ic.categoryName
     FROM ibadah_assignments ia
     LEFT JOIN users u ON ia.id_users = u.id
     LEFT JOIN pelayanPosition pp ON ia.id_pelayanPosition = pp.id
@@ -219,7 +219,7 @@ assignments.get("/", requireRole(["admin"]), (c) => {
 
 assignments.get("/calendar", requireRole(["admin"]), (c) => {
   const rows = db.prepare(`
-    SELECT ia.id, i.service_date, i.start_service_time, i.end_service_time, 
+    SELECT ia.id, i.service_date, i.tata_ibadah_link, i.start_service_time, i.end_service_time, 
            u.name as userName, pp.positionName, ic.categoryName
     FROM ibadah_assignments ia
     LEFT JOIN users u ON ia.id_users = u.id
@@ -229,12 +229,12 @@ assignments.get("/calendar", requireRole(["admin"]), (c) => {
   `).all();
 
   // Group by date + time + category
-  const grouped: Record<string, { categoryName: string; assignments: any[] }> = {};
+  const grouped: Record<string, { categoryName: string; assignments: any[], tata_ibadah_link: string }> = {};
 
   rows.forEach((row: any) => {
     const key = `${row.service_date}T${row.start_service_time ?? "00:00"} - ${row.end_service_time ?? "00:00"} - ${row.categoryName}`;
     if (!grouped[key]) {
-      grouped[key] = { categoryName: row.categoryName, assignments: [] };
+      grouped[key] = { categoryName: row.categoryName, tata_ibadah_link: row.tata_ibadah_link,assignments: [] };
     }
     grouped[key].assignments.push({
       userName: row.userName,
@@ -258,6 +258,7 @@ assignments.get("/calendar", requireRole(["admin"]), (c) => {
       start,
       end,
       title: group.categoryName,
+      tata_ibadah_link: group.tata_ibadah_link,
       meta: {
         assignments: group.assignments,
       },

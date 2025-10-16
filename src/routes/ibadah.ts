@@ -12,18 +12,20 @@ const createIbadahSchema = z.object({
   id_ibadahCategory: z.number().int().positive(),
   stola: z.string().optional().default(''),
   dress_code: z.string().optional().default(''),
-  service_date: z.string().date(), // Changed from .datetime() to .date()
-  start_service_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Invalid time format. Expected HH:MM or HH:MM:SS"),
-  end_service_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Invalid time format. Expected HH:MM or HH:MM:SS")
+  service_date: z.string().date(),
+  tata_ibadah_link: z.string().default('').optional(),
+  start_service_time: z.string().optional(),
+  end_service_time: z.string().optional()
 });
 
 const updateIbadahSchema = z.object({
   id_ibadahCategory: z.number().int().positive().optional(),
   stola: z.string().optional(),
   dress_code: z.string().optional(),
-  service_date: z.string().date().optional(), // Changed from .datetime()
-  start_service_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Invalid time format").optional(),
-  end_service_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Invalid time format").optional()
+  service_date: z.string().date().optional(),
+  tata_ibadah_link: z.string().optional(),
+  start_service_time: z.string().optional(),
+  end_service_time: z.string().optional()
 });
 
 const querySchema = z.object({
@@ -50,6 +52,7 @@ ibadah.get("/", requireRole(["admin"]), (c) => {
     i.service_date, 
     i.start_service_time, 
     i.end_service_time, 
+    i.tata_ibadah_link,
     i.createdAt, 
     i.updatedAt,
     ic.id as id_ibadahCategory,

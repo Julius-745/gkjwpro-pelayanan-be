@@ -62,6 +62,7 @@ db.prepare(`
   service_date DATE NOT NULL,
   start_service_time TIME NOT NULL,
   end_service_time TIME NOT NULL,
+  tata_ibadah_link STRING DEFAULT '',
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_ibadahCategory) REFERENCES ibadahCategory(id) ON DELETE RESTRICT
