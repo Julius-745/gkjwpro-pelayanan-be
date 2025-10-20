@@ -12,6 +12,7 @@ const loginSchema = z.object({
 
 const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
+  role: z.string().min(3, 'Role must be at least 4 characters'),
   email: z.string().email('Invalid email format'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
@@ -24,7 +25,7 @@ export class AuthService {
   static async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
       const validatedData = registerSchema.parse(userData);
-      const { username, email, password } = validatedData;
+      const { username, email, password, role } = validatedData;
 
       const existingUser = db.prepare('SELECT id FROM admin_users WHERE username = ? OR email = ?').get(username, email);
       
@@ -36,12 +37,12 @@ export class AuthService {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       const insertStmt = db.prepare(`
-        INSERT INTO admin_users (username, email, password)
-        VALUES (?, ?, ?)
+        INSERT INTO admin_users (username, email, password, role)
+        VALUES (?, ?, ?, ?)
       `);
       
-      const result = insertStmt.run(username, email, hashedPassword);
-      const newUser = db.prepare('SELECT id, username, email, role, isActive FROM admin_users WHERE id = ?').get(result.lastInsertRowid);
+      const result = insertStmt.run(username, email, hashedPassword, role);
+      const newUser = db.prepare('SELECT id, username, role, email, role, isActive FROM admin_users WHERE id = ?').get(result.lastInsertRowid);
 
       return {
         success: true,
@@ -149,7 +150,8 @@ export class AuthService {
           username: defaultUsername,
           email: defaultEmail,
           password: defaultPassword,
-          confirmPassword: defaultPassword
+          confirmPassword: defaultPassword,
+          role: 'super_admin',
         });
 
         console.log(`✅ Default admin created: ${defaultUsername}`);

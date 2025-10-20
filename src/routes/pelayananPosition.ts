@@ -17,7 +17,7 @@ const querySchema = z.object({
   take: z.coerce.number().int().positive().max(100).default(10)
 })
 
-pelayanPosition.get("/", requireRole(["admin"]), async (c) => {
+pelayanPosition.get("/", requireRole(["super_admin", "admin"]), async (c) => {
   try {
     const queryResult = querySchema.safeParse(c.req.query());
 
@@ -100,7 +100,7 @@ pelayanPosition.get("/", requireRole(["admin"]), async (c) => {
   }
 });
 
-pelayanPosition.get("/:id", requireRole(["admin"]), (c) => {
+pelayanPosition.get("/:id", requireRole(["super_admin", "admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -120,7 +120,7 @@ pelayanPosition.get("/:id", requireRole(["admin"]), (c) => {
   }
 });
 
-pelayanPosition.patch("/:id", requireRole(["admin"]), async (c) => {
+pelayanPosition.patch("/:id", requireRole(["super_admin", "admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -151,7 +151,7 @@ pelayanPosition.patch("/:id", requireRole(["admin"]), async (c) => {
   }
 });
 
-pelayanPosition.delete("/:id", requireRole(["admin"]), (c) => {
+pelayanPosition.delete("/:id", requireRole(["super_admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {

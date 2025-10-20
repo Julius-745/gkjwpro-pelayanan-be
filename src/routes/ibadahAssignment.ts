@@ -159,7 +159,7 @@ function checkUserAlreadyAssigned(
 }
 
 // Get all with filters
-assignments.get("/", requireRole(["admin"]), (c) => {
+assignments.get("/", requireRole(["super_admin", "admin"]), (c) => {
   const queryResult = querySchema.safeParse(c.req.query());
   if (!queryResult.success) {
     return c.json({ success: false, error: queryResult.error.errors }, 400);
@@ -217,7 +217,7 @@ assignments.get("/", requireRole(["admin"]), (c) => {
 
 
 
-assignments.get("/calendar", requireRole(["admin"]), (c) => {
+assignments.get("/calendar", requireRole(["super_admin", "admin", "user"]), (c) => {
   const rows = db.prepare(`
     SELECT ia.id, i.service_date, i.tata_ibadah_link, i.start_service_time, i.end_service_time, 
            u.name as userName, pp.positionName, ic.categoryName
@@ -270,7 +270,7 @@ assignments.get("/calendar", requireRole(["admin"]), (c) => {
 
 
 
-assignments.get("/export/excel", requireRole(["admin"]), (c) => {
+assignments.get("/export/excel", requireRole(["super_admin", "admin"]), (c) => {
   try {
     const rawData = db.prepare(`
       SELECT 
@@ -335,9 +335,6 @@ assignments.get("/export/excel", requireRole(["admin"]), (c) => {
       excelData.push(row);
     });
 
-    excelData.push(['Dresscode', ...Array(uniqueDateTimes.length).fill('Batik')]);
-    excelData.push(['Stola', ...Array(uniqueDateTimes.length).fill('Hijau')]);
-
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet(excelData);
     
@@ -363,7 +360,7 @@ assignments.get("/export/excel", requireRole(["admin"]), (c) => {
 });
 
 // Get single
-assignments.get("/:id", requireRole(["admin"]), (c) => {
+assignments.get("/:id", requireRole(["super_admin", "admin"]), (c) => {
   const id = Number(c.req.param("id"));
   const stmt = db.prepare(`
     SELECT ia.*, u.name as userName, pp.positionName
@@ -378,7 +375,7 @@ assignments.get("/:id", requireRole(["admin"]), (c) => {
 });
 
 // Create assignment with conflict check
-assignments.post("/", requireRole(["admin"]), async (c) => {
+assignments.post("/", requireRole(["super_admin", "admin"]), async (c) => {
   const body = await c.req.json();
   const validated = createSchema.parse(body);
 
@@ -473,7 +470,7 @@ assignments.post("/", requireRole(["admin"]), async (c) => {
 });
 
 // Update assignment with conflict check
-assignments.patch("/:id", requireRole(["admin"]), async (c) => {
+assignments.patch("/:id", requireRole(["super_admin", "admin"]), async (c) => {
   const id = Number(c.req.param("id"));
   const body = await c.req.json();
   const validated = updateSchema.parse(body);
@@ -567,7 +564,7 @@ assignments.patch("/:id", requireRole(["admin"]), async (c) => {
 });
 
 // Delete
-assignments.delete("/:id", requireRole(["admin"]), (c) => {
+assignments.delete("/:id", requireRole(["super_admin"]), (c) => {
   const id = Number(c.req.param("id"));
   const info = db.prepare("DELETE FROM ibadah_assignments WHERE id = ?").run(id);
   if (info.changes === 0) return c.json({ success: false, error: "Not found" }, 404);

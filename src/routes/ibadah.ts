@@ -36,7 +36,7 @@ const querySchema = z.object({
 });
 
 // Get all ibadah with pagination, search, filter
-ibadah.get("/", requireRole(["admin"]), (c) => {
+ibadah.get("/", requireRole(["super_admin", "admin"]), (c) => {
   const queryResult = querySchema.safeParse(c.req.query());
   if (!queryResult.success) {
     return c.json({ success: false, error: queryResult.error.errors }, 400);
@@ -93,7 +93,7 @@ ibadah.get("/", requireRole(["admin"]), (c) => {
 });
 
 // Get single ibadah
-ibadah.get("/:id", requireRole(["admin"]), (c) => {
+ibadah.get("/:id", requireRole(["super_admin", "admin"]), (c) => {
   const id = Number(c.req.param("id"));
   const stmt = db.prepare(`
     SELECT i.id, i.stola, i.dress_code, i.service_date, i.start_service_time, i.end_service_time, i.createdAt, i.updatedAt,
@@ -108,7 +108,7 @@ ibadah.get("/:id", requireRole(["admin"]), (c) => {
 });
 
 // Create ibadah
-ibadah.post("/", requireRole(["admin"]), async (c) => {
+ibadah.post("/", requireRole(["super_admin", "admin"]), async (c) => {
   const body = await c.req.json();
   const validated = createIbadahSchema.parse(body);
 
@@ -133,7 +133,7 @@ ibadah.post("/", requireRole(["admin"]), async (c) => {
 });
 
 // Update ibadah
-ibadah.patch("/:id", requireRole(["admin"]), async (c) => {
+ibadah.patch("/:id", requireRole(["super_admin", "admin"]), async (c) => {
   const id = Number(c.req.param("id"));
   const body = await c.req.json();
   const validated = updateIbadahSchema.parse(body);
@@ -156,7 +156,7 @@ ibadah.patch("/:id", requireRole(["admin"]), async (c) => {
 });
 
 // Delete ibadah
-ibadah.delete("/:id", requireRole(["admin"]), (c) => {
+ibadah.delete("/:id", requireRole(["super_admin"]), (c) => {
   const id = Number(c.req.param("id"));
   const info = db.prepare("DELETE FROM ibadah WHERE id = ?").run(id);
   if (info.changes === 0) return c.json({ success: false, error: "Not found" }, 404);

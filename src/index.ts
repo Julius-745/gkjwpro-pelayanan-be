@@ -29,6 +29,7 @@ import { authenticateToken } from "./middleware/authMiddleware";
 
 // Import services
 import { AuthService } from "./services/authService";
+import adminUsers from "./routes/adminUsers";
 
 
 dotenv.config();
@@ -39,7 +40,7 @@ app.use('/swagger.json', serveStatic({ path: './swagger.json' }));
 app.use('/*', serveStatic({ root: './public' }));
 
 // Global middleware
-app.use("*", logger(), secureHeaders(), compress(), requestLogger, rateLimiter, compress() ,
+app.use("*", logger(), secureHeaders(), compress(), requestLogger, rateLimiter,
 cors({
     origin: (origin) => {
       const allowed = (process.env.ALLOWED_ORIGINS?.split(',') ?? ["http://localhost:3001"]);
@@ -109,6 +110,7 @@ app.route("/api/ibadah-categories", ibadahCategory.use("*", authenticateToken));
 app.route("/api/krw", krw.use("*", authenticateToken));
 app.route("/api/ibadah", ibadah.use("*", authenticateToken));
 app.route("/api/ibadah-assignments", ibadahAssignments.use("*", authenticateToken));
+app.route("/api/admin-users", adminUsers.use("*", authenticateToken));
 
 // Root endpoint with API information
 app.get("/", (c) => {

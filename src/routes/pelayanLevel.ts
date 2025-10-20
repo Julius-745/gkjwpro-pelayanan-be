@@ -18,7 +18,7 @@ const querySchema = z.object({
   take: z.coerce.number().int().positive().max(100).default(10)
 })
 
-pelayanLevel.get("/", requireRole(["admin"]), (c) => {
+pelayanLevel.get("/", requireRole(["super_admin", "admin"]), (c) => {
   try {
     const queryResult = querySchema.safeParse(c.req.query());
 
@@ -101,7 +101,7 @@ pelayanLevel.get("/", requireRole(["admin"]), (c) => {
   }
 });
 
-pelayanLevel.get("/:id", requireRole(["admin"]), (c) => {
+pelayanLevel.get("/:id", requireRole(["super_admin", "admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -121,7 +121,7 @@ pelayanLevel.get("/:id", requireRole(["admin"]), (c) => {
   }
 });
 
-pelayanLevel.post("/", requireRole(["admin"]), async (c) => {
+pelayanLevel.post("/", requireRole(["super_admin", "admin"]), async (c) => {
   try {
     const body = await c.req.json();
     const validatedData = createLevelSchema.parse(body);
@@ -143,7 +143,7 @@ pelayanLevel.post("/", requireRole(["admin"]), async (c) => {
   }
 });
 
-pelayanLevel.patch("/:id", requireRole(["admin"]), async (c) => {
+pelayanLevel.patch("/:id", requireRole(["super_admin", "admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -174,7 +174,7 @@ pelayanLevel.patch("/:id", requireRole(["admin"]), async (c) => {
   }
 });
 
-pelayanLevel.delete("/:id", requireRole(["admin"]), (c) => {
+pelayanLevel.delete("/:id", requireRole(["super_admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {

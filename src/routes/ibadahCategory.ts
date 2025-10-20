@@ -18,7 +18,7 @@ const querySchema = z.object({
   take: z.coerce.number().int().positive().max(100).default(10)
 })
 
-ibadahCategory.get("/", requireRole(["admin"]), (c) => {
+ibadahCategory.get("/", requireRole(["super_admin", "admin"]), (c) => {
   try {
     const queryResult = querySchema.safeParse(c.req.query());
 
@@ -102,7 +102,7 @@ ibadahCategory.get("/", requireRole(["admin"]), (c) => {
 });
 
 
-ibadahCategory.get("/:id", requireRole(["admin"]), (c) => {
+ibadahCategory.get("/:id", requireRole(["super_admin", "admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -122,7 +122,7 @@ ibadahCategory.get("/:id", requireRole(["admin"]), (c) => {
   }
 });
 
-ibadahCategory.post("/", requireRole(["admin"]), async (c) => {
+ibadahCategory.post("/", requireRole(["super_admin", "admin"]), async (c) => {
   try {
     const body = await c.req.json();
     const validatedData = createCategorySchema.parse(body);
@@ -144,7 +144,7 @@ ibadahCategory.post("/", requireRole(["admin"]), async (c) => {
   }
 });
 
-ibadahCategory.patch("/:id", requireRole(["admin"]), async (c) => {
+ibadahCategory.patch("/:id", requireRole(["super_admin", "admin"]), async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {
@@ -175,7 +175,7 @@ ibadahCategory.patch("/:id", requireRole(["admin"]), async (c) => {
   }
 });
 
-ibadahCategory.delete("/:id", requireRole(["admin"]), (c) => {
+ibadahCategory.delete("/:id", requireRole(["super_admin"]), (c) => {
   try {
     const id = parseInt(c.req.param("id"));
     if (isNaN(id)) {

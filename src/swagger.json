@@ -34,7 +34,17 @@
           "id": { "type": "integer", "example": 1 },
           "username": { "type": "string", "example": "john_doe" },
           "email": { "type": "string", "format": "email", "example": "john@example.com" },
-          "role": { "type": "string", "enum": ["admin", "user"], "example": "user" },
+          "role": { 
+            "type": "string", 
+            "enum": ["super_admin", "admin", "user"], 
+            "example": "admin" 
+          },
+          "isActive": { "type": "boolean", "example": true },
+          "lastLogin": { 
+            "type": "string", 
+            "format": "date-time",
+            "nullable": true 
+          },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
         }
@@ -1860,18 +1870,20 @@
     },
     "/api/ibadah-assignments/export/excel": {
       "get": {
-        "summary": "Export ibadah assignments to Excel (Optimized)",
-        "description": "Optimized version for large datasets. Export all ibadah assignments in Excel format with better performance and memory usage. Recommended for datasets with 1000+ assignments.",
         "tags": ["IbadahAssignments"],
+        "summary": "Export assignments to Excel",
+        "description": "Export all worship service assignments to an Excel file with dates as columns and positions as rows",
         "security": [
-          { "bearerAuth": [] }
+          {
+            "bearerAuth": []
+          }
         ],
         "parameters": [
           {
             "in": "query",
             "name": "start_date",
-            "schema": { 
-              "type": "string", 
+            "schema": {
+              "type": "string",
               "format": "date",
               "example": "2025-01-01"
             },
@@ -1881,8 +1893,8 @@
           {
             "in": "query",
             "name": "end_date",
-            "schema": { 
-              "type": "string", 
+            "schema": {
+              "type": "string",
               "format": "date",
               "example": "2025-12-31"
             },
@@ -1892,42 +1904,319 @@
           {
             "in": "query",
             "name": "id_ibadahCategory",
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "required": false,
             "description": "Filter by specific ibadah category ID"
           }
         ],
         "responses": {
           "200": {
-            "description": "Excel file with ibadah assignments schedule (optimized version)",
+            "description": "Excel file successfully generated",
             "content": {
               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
                 "schema": {
                   "type": "string",
-                  "format": "binary",
-                  "description": "Excel (.xlsx) file containing the assignments schedule"
+                  "format": "binary"
                 }
               }
             },
             "headers": {
               "Content-Disposition": {
-                "description": "Attachment filename",
                 "schema": {
                   "type": "string",
-                  "example": "attachment; filename=\"Jadwal_Pelayanan_2025-09-24.xlsx\""
-                }
-              },
-              "Content-Type": {
-                "description": "MIME type for Excel files",
-                "schema": {
-                  "type": "string",
-                  "example": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  "example": "attachment; filename=\"Jadwal_Pelayanan_2025-10-19.xlsx\""
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized - Admin role required",
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Export failed"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin-users": {
+      "get": {
+        "summary": "Get all admin users",
+        "description": "Retrieve all admin users with pagination and filtering (super_admin and admin only)",
+        "tags": ["Admin Users"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Search admin users by username or email"
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "schema": { 
+              "type": "string",
+              "enum": ["super_admin", "admin", "user"]
+            },
+            "required": false,
+            "description": "Filter by user role"
+          },
+          {
+            "in": "query",
+            "name": "isActive",
+            "schema": { "type": "boolean" },
+            "required": false,
+            "description": "Filter by active status"
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "schema": { "type": "integer", "default": 0 },
+            "required": false,
+            "description": "Number of records to skip (for pagination)"
+          },
+          {
+            "in": "query",
+            "name": "take",
+            "schema": { "type": "integer", "default": 10, "maximum": 100 },
+            "required": false,
+            "description": "Number of records to return (max 100)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of admin users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/AuthUser" }
+                    },
+                    "total": { "type": "integer", "example": 15 },
+                    "skip": { "type": "integer", "example": 0 },
+                    "take": { "type": "integer", "example": 10 }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions (requires super_admin or admin role)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new admin user",
+        "description": "Create a new admin user (super_admin only)",
+        "tags": ["Admin Users"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "password", "confirmPassword", "role"],
+                "properties": {
+                  "username": { 
+                    "type": "string", 
+                    "minLength": 3, 
+                    "example": "johnadmin" 
+                  },
+                  "email": { 
+                    "type": "string", 
+                    "format": "email", 
+                    "example": "john@admin.com" 
+                  },
+                  "password": { 
+                    "type": "string", 
+                    "minLength": 8, 
+                    "example": "Admin@123456" 
+                  },
+                  "confirmPassword": { 
+                    "type": "string", 
+                    "minLength": 8, 
+                    "example": "Admin@123456" 
+                  },
+                  "role": { 
+                    "type": "string", 
+                    "enum": ["super_admin", "admin", "user"], 
+                    "example": "admin" 
+                  },
+                  "isActive": { 
+                    "type": "boolean", 
+                    "default": true,
+                    "example": true 
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Admin user created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": { "$ref": "#/components/schemas/AuthUser" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or user already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ValidationErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Only super_admin can create admin users",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin-users/{id}": {
+      "get": {
+        "summary": "Get admin user by ID",
+        "description": "Retrieve a specific admin user by their ID (super_admin and admin only)",
+        "tags": ["Admin Users"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "minimum": 1 },
+            "description": "Admin User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admin user data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": { "$ref": "#/components/schemas/AuthUser" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -1942,17 +2231,208 @@
               }
             }
           },
-          "500": {
-            "description": "Server error during export generation",
+          "404": {
+            "description": "Admin user not found",
             "content": {
               "application/json": {
-                "schema": { 
-                  "$ref": "#/components/schemas/ErrorResponse",
-                  "example": {
-                    "success": false,
-                    "error": "Export failed"
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update an admin user",
+        "description": "Update admin user information. Super_admin can update any user. Admin can only update themselves.",
+        "tags": ["Admin Users"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "minimum": 1 },
+            "description": "Admin User ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { 
+                    "type": "string", 
+                    "minLength": 3, 
+                    "example": "johnadmin" 
+                  },
+                  "email": { 
+                    "type": "string", 
+                    "format": "email", 
+                    "example": "john@admin.com" 
+                  },
+                  "password": { 
+                    "type": "string", 
+                    "minLength": 8, 
+                    "example": "NewPassword@123",
+                    "description": "New password (optional)"
+                  },
+                  "role": { 
+                    "type": "string", 
+                    "enum": ["super_admin", "admin", "user"], 
+                    "example": "admin",
+                    "description": "Only super_admin can change roles"
+                  },
+                  "isActive": { 
+                    "type": "boolean", 
+                    "example": true,
+                    "description": "Only super_admin can change active status"
                   }
                 }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Admin user updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": { "$ref": "#/components/schemas/AuthUser" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or cannot demote last super admin",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ValidationErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Admin user not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an admin user",
+        "description": "Delete an admin user by ID (super_admin only). Cannot delete last super admin or self.",
+        "tags": ["Admin Users"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "minimum": 1 },
+            "description": "Admin User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Admin user deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": { "type": "string", "example": "Admin user deleted successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID, cannot delete last super admin, or cannot delete self",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Only super_admin can delete admin users",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Admin user not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           }
