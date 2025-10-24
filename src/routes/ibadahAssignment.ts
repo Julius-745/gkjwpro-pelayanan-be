@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import db from "../db";
 import { z } from "zod";
 import { requireRole, authenticateToken } from "../middleware/authMiddleware";
-import XLSX from "xlsx";
+import * as XLSX from "xlsx";
 
 const assignments = new Hono();
 assignments.use("*", authenticateToken);

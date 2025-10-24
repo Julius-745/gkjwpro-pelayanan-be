@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import {Database} from 'bun:sqlite'
 
 const db = new Database("app.db");
 
@@ -82,7 +82,7 @@ db.prepare(`
 );`).run();
 
 // Enable foreign key constraints
-db.pragma("foreign_keys = ON");
+db.exec("PRAGMA foreign_keys = ON;");
 
 db.prepare(`
   CREATE TABLE IF NOT EXISTS admin_users (
@@ -164,9 +164,9 @@ db.prepare(`
   END
 `).run();
 
-db.pragma('journal_mode = WAL');   
-db.pragma('synchronous = NORMAL');  
-db.pragma('cache_size = 1000000');   
-db.pragma('temp_store = MEMORY'); 
+db.exec("PRAGMA journal_mode = WAL;");
+db.exec("PRAGMA synchronous = NORMAL;");
+db.exec("PRAGMA cache_size = 1000000;");
+db.exec("PRAGMA temp_store = MEMORY;");
 
 export default db;

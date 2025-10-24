@@ -1,10 +1,8 @@
 // src/index.ts
 import { Hono } from "hono";
-import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { compress } from "hono/compress";
 import { serveStatic } from '@hono/node-server/serve-static';
 import fs from "fs";
 import dotenv from "dotenv";
@@ -40,7 +38,7 @@ app.use('/swagger.json', serveStatic({ path: './swagger.json' }));
 app.use('/*', serveStatic({ root: './public' }));
 
 // Global middleware
-app.use("*", logger(), secureHeaders(), compress(), requestLogger, rateLimiter,
+app.use("*", logger(), secureHeaders(), requestLogger, rateLimiter,
 cors({
     origin: (origin) => {
       const allowed = (process.env.ALLOWED_ORIGINS?.split(',') ?? ["http://localhost:3001"]);
@@ -167,9 +165,7 @@ console.log(`🚀 Server is running on port ${port}`);
 console.log(`📚 API Documentation: http://localhost:${port}/docs`);
 console.log(`📋 OpenAPI Spec: http://localhost:${port}/swagger.json`);
 
-serve({
+export default {
   fetch: app.fetch,
   port,
-});
-
-export default app;
+};
