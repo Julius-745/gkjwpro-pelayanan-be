@@ -1,178 +1,334 @@
-// routes/pelayanPosition.ts
-import { Hono } from "hono";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import db from "../db";
-import { z } from "zod";
-import { requireRole, authenticateToken } from "../middleware/authMiddleware";
+import type { AppEnv } from "../types/hono";
 
-const pelayanPosition = new Hono();
-pelayanPosition.use("*", authenticateToken); 
+const pelayananPosition = new OpenAPIHono<AppEnv>();
 
-const createPositionSchema = z.object({
-  positionName: z.string().min(1, "Position name is required")
+// Schemas
+const PositionSchema = z
+  .object({
+    id: z.number(),
+    positionName: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .openapi("PelayanPosition");
+
+const CreatePositionDTO = z.object({
+  positionName: z.string().min(1, "Position name is required"),
 });
 
-const querySchema = z.object({
-  search: z.string().optional().default(''),
-  skip: z.coerce.number().int().nonnegative().default(0),
-  take: z.coerce.number().int().positive().max(100).default(10)
-})
+// Route Definitions
+const listPositionsRoute = createRoute({
+  method: "get",
+  path: "/",
+  summary: "Get all server positions",
+  tags: ["Pelayan Position"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      search: z.string().optional().default(""),
+      skip: z.coerce.number().int().nonnegative().default(0),
+      take: z.coerce.number().int().positive().max(100).default(10),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.boolean(),
+            data: z.array(PositionSchema),
+            total: z.number(),
+            skip: z.number(),
+            take: z.number(),
+            totalPages: z.number(),
+          }),
+        },
+      },
+      description: "Successfully retrieved positions",
+    },
+    403: { description: "Forbidden" },
+    401: { description: "Unauthorized" },
+  },
+});
 
-pelayanPosition.get("/", requireRole(["super_admin", "admin"]), async (c) => {
-  try {
-    const queryResult = querySchema.safeParse(c.req.query());
+const getPositionRoute = createRoute({
+  method: "get",
+  path: "/{id}",
+  summary: "Get server position by ID",
+  tags: ["Pelayan Position"],
+  security: [{ bearerAuth: [] }],
+  request: { params: z.object({ id: z.coerce.number() }) },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), data: PositionSchema }),
+        },
+      },
+      description: "Position found",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Position not found",
+    },
+    403: { description: "Forbidden" },
+    401: { description: "Unauthorized" },
+  },
+});
 
-    if (!queryResult.success) {
-      console.error("Query validation failed:", queryResult.error);
-      return c.json({
-        success: false,
-        error: "Invalid query parameters",
-        details: queryResult.error.errors
-      }, 400);
-    }
+const createPositionRoute = createRoute({
+  method: "post",
+  path: "/",
+  summary: "Create a new server position",
+  tags: ["Pelayan Position"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: { content: { "application/json": { schema: CreatePositionDTO } } },
+  },
+  responses: {
+    201: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), data: PositionSchema }),
+        },
+      },
+      description: "Position created",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Invalid input or duplicate",
+    },
+    403: { description: "Forbidden" },
+    401: { description: "Unauthorized" },
+  },
+});
 
-    const { search, skip, take } = queryResult.data;
+const updatePositionRoute = createRoute({
+  method: "patch",
+  path: "/{id}",
+  summary: "Update a server position",
+  tags: ["Pelayan Position"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({ id: z.coerce.number() }),
+    body: { content: { "application/json": { schema: CreatePositionDTO } } },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), data: PositionSchema }),
+        },
+      },
+      description: "Position updated",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Position not found",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Invalid input",
+    },
+    403: { description: "Forbidden" },
+    401: { description: "Unauthorized" },
+  },
+});
 
-    let query = `
-      SELECT 
-        p.id,
-        p.positionName,
-        p.createdAt,
-        p.updatedAt
-      FROM pelayanPosition p
-    `;
+const deletePositionRoute = createRoute({
+  method: "delete",
+  path: "/{id}",
+  summary: "Delete a server position",
+  tags: ["Pelayan Position"],
+  security: [{ bearerAuth: [] }],
+  request: { params: z.object({ id: z.coerce.number() }) },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), message: z.string() }),
+        },
+      },
+      description: "Position deleted",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Position not found",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Conflict",
+    },
+    403: { description: "Forbidden" },
+    401: { description: "Unauthorized" },
+  },
+});
 
-    const conditions: string[] = [];
-    const values: (string | number)[] = [];
+// Implementation
+pelayananPosition.openapi(listPositionsRoute, (c) => {
+  const { search, skip, take } = c.req.valid("query");
 
-    if (search) {
-      conditions.push(`p.positionName LIKE ?`);
-      values.push(`%${search}%`);
-    }
+  let query = `SELECT id, positionName, createdAt, updatedAt FROM pelayanPosition`;
+  const conditions: string[] = [];
+  const values: (string | number)[] = [];
 
-    if (conditions.length > 0) {
-      query += ` WHERE ` + conditions.join(" AND ");
-    }
+  if (search) {
+    conditions.push(`positionName LIKE ?`);
+    values.push(`%${search}%`);
+  }
+  if (conditions.length > 0) query += ` WHERE ` + conditions.join(" AND ");
+  query += ` ORDER BY createdAt DESC LIMIT ? OFFSET ?`;
 
-    query += ` ORDER BY p.createdAt DESC LIMIT ? OFFSET ?`;
+  type TPosition = z.infer<typeof PositionSchema>;
+  const data = db.prepare(query).all(...values, take, skip) as TPosition[];
 
-    const stmt = db.prepare(query);
-    const data = stmt.all(...values, take, skip);
+  let countQuery = `SELECT COUNT(*) as total FROM pelayanPosition`;
+  if (conditions.length > 0) countQuery += ` WHERE ` + conditions.join(" AND ");
+  const countResult = db.prepare(countQuery).get(...values) as {
+    total: number;
+  };
+  const total = countResult?.total ?? 0;
 
-    // Build count query with same conditions
-    let countQuery = `SELECT COUNT(*) as total FROM pelayanPosition p`;
-    if (conditions.length > 0) {
-      countQuery += ` WHERE ` + conditions.join(" AND ");
-    }
-
-    const countStmt = db.prepare(countQuery);
-    const countResult = countStmt.get(...values);
-
-    const total = countResult && typeof countResult === 'object' && 'total' in countResult
-      ? (countResult as { total: number }).total
-      : 0;
-
-    return c.json({
+  return c.json(
+    {
       success: true,
       data,
       total,
       skip,
       take,
       totalPages: Math.ceil(total / take),
-    });
-  } catch (error) {
-    console.error("Error in GET /pelayanPosition:", error);
+    },
+    200,
+  );
+});
 
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-    } else {
-      console.error("Unknown error:", error);
+pelayananPosition.openapi(getPositionRoute, (c) => {
+  const { id } = c.req.valid("param");
+  type TPosition = z.infer<typeof PositionSchema>;
+  const position = db
+    .prepare("SELECT * FROM pelayanPosition WHERE id = ?")
+    .get(id) as TPosition | undefined;
+  if (!position) {
+    return c.json({ success: false, error: "Position not found" }, 404);
+  }
+  return c.json({ success: true, data: position }, 200);
+});
+
+pelayananPosition.openapi(createPositionRoute, async (c) => {
+  const { positionName } = c.req.valid("json");
+  try {
+    const info = db
+      .prepare("INSERT INTO pelayanPosition (positionName) VALUES (?)")
+      .run(positionName);
+    type TPosition = z.infer<typeof PositionSchema>;
+    const newPosition = db
+      .prepare("SELECT * FROM pelayanPosition WHERE id = ?")
+      .get(info.lastInsertRowid) as TPosition;
+    return c.json({ success: true, data: newPosition }, 201);
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "SQLITE_CONSTRAINT_UNIQUE"
+    ) {
+      return c.json(
+        { success: false, error: "Position name already exists" },
+        400,
+      );
     }
+    throw error;
+  }
+});
 
+pelayananPosition.openapi(updatePositionRoute, async (c) => {
+  const { id } = c.req.valid("param");
+  const { positionName } = c.req.valid("json");
+  try {
+    const info = db
+      .prepare("UPDATE pelayanPosition SET positionName = ? WHERE id = ?")
+      .run(positionName, id);
+    if (info.changes === 0) {
+      return c.json({ success: false, error: "Position not found" }, 404);
+    }
+    type TPosition = z.infer<typeof PositionSchema>;
+    const updatedPosition = db
+      .prepare("SELECT * FROM pelayanPosition WHERE id = ?")
+      .get(id) as TPosition;
+    return c.json({ success: true, data: updatedPosition }, 200);
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "SQLITE_CONSTRAINT_UNIQUE"
+    ) {
+      return c.json(
+        { success: false, error: "Position name already exists" },
+        400,
+      );
+    }
+    throw error;
+  }
+});
+
+pelayananPosition.openapi(deletePositionRoute, (c) => {
+  const { id } = c.req.valid("param");
+  try {
+    const info = db.prepare("DELETE FROM pelayanPosition WHERE id = ?").run(id);
+    if (info.changes === 0) {
+      return c.json({ success: false, error: "Position not found" }, 404);
+    }
     return c.json(
       {
-        success: false,
-        error: error instanceof Error ? error.message : JSON.stringify(error),
-        timestamp: new Date().toISOString()
+        success: true,
+        message: "Pelayan position deleted successfully",
       },
-      500
+      200,
     );
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "SQLITE_CONSTRAINT_FOREIGNKEY"
+    ) {
+      return c.json(
+        {
+          success: false,
+          error: "Cannot delete position that is referenced by assignments",
+        },
+        400,
+      );
+    }
+    throw error;
   }
 });
 
-pelayanPosition.get("/:id", requireRole(["super_admin", "admin"]), (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid position ID" }, 400);
-    }
-
-    const stmt = db.prepare("SELECT * FROM pelayanPosition WHERE id = ?");
-    const position = stmt.get(id);
-
-    if (!position) {
-      return c.json({ success: false, error: "Pelayan position not found" }, 404);
-    }
-
-    return c.json({ success: true, data: position });
-  } catch (error) {
-    return c.json({ success: false, error: error || "Failed to fetch pelayan position" }, 500);
-  }
-});
-
-pelayanPosition.patch("/:id", requireRole(["super_admin", "admin"]), async (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid position ID" }, 400);
-    }
-
-    const body = await c.req.json();
-    const validatedData = createPositionSchema.parse(body);
-
-    const stmt = db.prepare("UPDATE pelayanPosition SET positionName = ? WHERE id = ?");
-    const info = stmt.run(validatedData.positionName, id);
-
-    if (info.changes === 0) {
-      return c.json({ success: false, error: "Pelayan position not found" }, 404);
-    }
-
-    const updatedPosition = db.prepare("SELECT * FROM pelayanPosition WHERE id = ?").get(id);
-    return c.json({ success: true, data: updatedPosition });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return c.json({ success: false, error: error.errors }, 400);
-    }
-    /* @ts-expect-error: "type error" */
-    if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
-      return c.json({ success: false, error: "Position position name already exists" }, 400);
-    }
-    return c.json({ success: false, error: "Failed to update pelayan position" }, 500);
-  }
-});
-
-pelayanPosition.delete("/:id", requireRole(["super_admin"]), (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid position ID" }, 400);
-    }
-
-    const stmt = db.prepare("DELETE FROM pelayanPosition WHERE id = ?");
-    const info = stmt.run(id);
-
-    if (info.changes === 0) {
-      return c.json({ success: false, error: "Pelayan position not found" }, 404);
-    }
-
-    return c.json({ success: true, message: "Pelayan position deleted successfully" });
-  } catch (error) {
-    /* @ts-expect-error: "type error" */
-    if (error.code === "SQLITE_CONSTRAINT_FOREIGNKEY") {
-      return c.json({ success: false, error: "Cannot delete position that is referenced by ibadah" }, 400);
-    }
-    return c.json({ success: false, error: "Failed to delete pelayan position" }, 500);
-  }
-});
-
-export default pelayanPosition;
+export default pelayananPosition;

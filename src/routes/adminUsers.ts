@@ -1,442 +1,509 @@
-// routes/admin-users.ts
-import { Hono, type Context } from "hono";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import db from "../db";
-import { z } from "zod";
-import { requireRole } from "../middleware/authMiddleware";
-import { authenticateToken } from "../middleware/authMiddleware";
+import type { AppEnv } from "../types/hono";
 import bcrypt from "bcryptjs";
 
-const adminUsers = new Hono();
+const adminUsers = new OpenAPIHono<AppEnv>();
 
-adminUsers.use("*", authenticateToken);
+// Explicit interfaces for database results to avoid 'any'
+interface AdminUserRow {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  isActive: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
-// Validation schemas
-const createAdminUserSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.enum(["super_admin", "admin", "user"]).default("admin"),
-  isActive: z.boolean().default(true)
+// Schemas
+const AdminUserSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  email: z.string(),
+  role: z.string(),
+  isActive: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
-const updateAdminUserSchema = z.object({
-  username: z.string().min(3).optional(),
-  email: z.string().email().optional(),
-  password: z.string().min(8).optional(),
-  role: z.enum(["super_admin", "admin", "user"]).optional(),
-  isActive: z.boolean().optional()
+const CreateAdminUserDTO = z.object({
+  username: z.string().min(3),
+  email: z.string().email(),
+  password: z.string().min(8),
+  role: z.enum(["super_admin", "admin", "user"]).default("user"),
+  isActive: z.boolean().default(true),
 });
 
-const querySchema = z.object({
-  search: z.string().optional(),
-  role: z.enum(["super_admin", "admin", "user"]).optional(),
-  isActive: z.coerce.boolean().optional(),
-  skip: z.coerce.number().int().nonnegative().default(0),
-  take: z.coerce.number().int().positive().max(100).default(10)
-});
+const UpdateAdminUserDTO = CreateAdminUserDTO.partial().openapi(
+  "UpdateAdminUserRequest",
+);
 
-// Get all admin users (super_admin and admin only)
-adminUsers.get("/", requireRole(["super_admin", "admin"]), (c: Context) => {
-  try {
-    const queryResult = querySchema.safeParse(c.req.query());
-
-    if (!queryResult.success) {
-      return c.json(
-        {
-          success: false,
-          error: "Invalid query parameters",
-          details: queryResult.error.errors,
+// Route Definitions
+const listAdminUsersRoute = createRoute({
+  method: "get",
+  path: "/",
+  summary: "Get all administrative users",
+  tags: ["Admin Users"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      search: z.string().optional().default(""),
+      skip: z.coerce.number().int().nonnegative().default(0),
+      take: z.coerce.number().int().positive().max(100).default(10),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.boolean(),
+            data: z.array(AdminUserSchema),
+            total: z.number(),
+            skip: z.number(),
+            take: z.number(),
+            totalPages: z.number(),
+          }),
         },
-        400
-      );
-    }
+      },
+      description: "Successfully retrieved admin users",
+    },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Forbidden",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Unauthorized",
+    },
+  },
+});
 
-    const { search, role, isActive, skip, take } = queryResult.data;
+const getAdminUserRoute = createRoute({
+  method: "get",
+  path: "/{id}",
+  summary: "Get admin user by ID",
+  tags: ["Admin Users"],
+  security: [{ bearerAuth: [] }],
+  request: { params: z.object({ id: z.coerce.number() }) },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), data: AdminUserSchema }),
+        },
+      },
+      description: "Admin user found",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Admin user not found",
+    },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Forbidden",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Unauthorized",
+    },
+  },
+});
 
-    let query = `
-      SELECT 
-        id,
-        username,
-        email,
-        role,
-        isActive,
-        lastLogin,
-        createdAt,
-        updatedAt
-      FROM admin_users
-    `;
+const createAdminUserRoute = createRoute({
+  method: "post",
+  path: "/",
+  summary: "Create a new admin user",
+  tags: ["Admin Users"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: { content: { "application/json": { schema: CreateAdminUserDTO } } },
+  },
+  responses: {
+    201: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), data: AdminUserSchema }),
+        },
+      },
+      description: "Admin user created",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Invalid input or duplicate",
+    },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Forbidden",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Unauthorized",
+    },
+  },
+});
 
-    const conditions: string[] = [];
-    const values: (string | number)[] = [];
+const updateAdminUserRoute = createRoute({
+  method: "patch",
+  path: "/{id}",
+  summary: "Update an admin user",
+  tags: ["Admin Users"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({ id: z.coerce.number() }),
+    body: { content: { "application/json": { schema: UpdateAdminUserDTO } } },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), data: AdminUserSchema }),
+        },
+      },
+      description: "Admin user updated",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Admin user not found",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Invalid input",
+    },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Forbidden",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Unauthorized",
+    },
+  },
+});
 
-    if (search) {
-      conditions.push(`(username LIKE ? OR email LIKE ?)`);
-      values.push(`%${search}%`, `%${search}%`);
-    }
-    if (role) {
-      conditions.push(`role = ?`);
-      values.push(role);
-    }
-    if (isActive !== undefined) {
-      conditions.push(`isActive = ?`);
-      values.push(isActive ? 1 : 0);
-    }
+const deleteAdminUserRoute = createRoute({
+  method: "delete",
+  path: "/{id}",
+  summary: "Delete an admin user",
+  tags: ["Admin Users"],
+  security: [{ bearerAuth: [] }],
+  request: { params: z.object({ id: z.coerce.number() }) },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), message: z.string() }),
+        },
+      },
+      description: "Admin user deleted",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Admin user not found",
+    },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Conflict",
+    },
+    403: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Forbidden",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: z.object({ success: z.boolean(), error: z.string() }),
+        },
+      },
+      description: "Unauthorized",
+    },
+  },
+});
 
-    if (conditions.length > 0) {
-      query += ` WHERE ` + conditions.join(" AND ");
-    }
+// Implementation
+adminUsers.openapi(listAdminUsersRoute, (c) => {
+  const currentUser = c.get("user");
+  if (!currentUser || currentUser.role !== "super_admin") {
+    return c.json({ success: false, error: "Forbidden" }, 403);
+  }
 
-    query += ` ORDER BY createdAt DESC LIMIT ? OFFSET ?`;
+  const { search, skip, take } = c.req.valid("query");
 
-    const stmt = db.prepare(query);
-    const rows = stmt.all(...values, take, skip);
+  let query = `SELECT id, username, email, role, isActive, lastLogin, createdAt, updatedAt FROM admin_users`;
+  const conditions: string[] = [];
+  const values: (string | number)[] = [];
 
-    // Remove password from response
-    const data = rows.map((row: any) => {
-      const { password, ...userWithoutPassword } = row;
-      return userWithoutPassword;
-    });
+  if (search) {
+    conditions.push(`(username LIKE ? OR email LIKE ?)`);
+    values.push(`%${search}%`, `%${search}%`);
+  }
+  if (conditions.length > 0) query += ` WHERE ` + conditions.join(" AND ");
+  query += ` ORDER BY createdAt DESC LIMIT ? OFFSET ?`;
 
-    // Count query
-    let countQuery = `SELECT COUNT(*) as total FROM admin_users`;
-    if (conditions.length > 0) {
-      countQuery += ` WHERE ` + conditions.join(" AND ");
-    }
+  const rows = db.prepare(query).all(...values, take, skip) as AdminUserRow[];
+  const data = rows.map((row) => ({
+    ...row,
+    isActive: Boolean(row.isActive),
+  }));
 
-    const countStmt = db.prepare(countQuery);
-    const countResult = countStmt.get(...values);
-    const total =
-      countResult && typeof countResult === "object" && "total" in countResult
-        ? (countResult as { total: number }).total
-        : 0;
+  let countQuery = `SELECT COUNT(*) as total FROM admin_users`;
+  if (conditions.length > 0) countQuery += ` WHERE ` + conditions.join(" AND ");
+  const countResult = db.prepare(countQuery).get(...values) as {
+    total: number;
+  };
+  const total = countResult?.total ?? 0;
 
-    return c.json({
+  return c.json(
+    {
       success: true,
       data,
       total,
       skip,
       take,
-    });
-  } catch (error) {
-    console.error("Error in GET /admin-users:", error);
-    return c.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to fetch admin users",
-        timestamp: new Date().toISOString(),
-      },
-      500
-    );
-  }
+      totalPages: Math.ceil(total / take),
+    },
+    200,
+  );
 });
 
-// Get admin user by ID (super_admin and admin only)
-adminUsers.get("/:id", requireRole(["super_admin", "admin"]), (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid user ID" }, 400);
-    }
-
-    const stmt = db.prepare(`
-      SELECT 
-        id,
-        username,
-        email,
-        role,
-        isActive,
-        lastLogin,
-        createdAt,
-        updatedAt
-      FROM admin_users
-      WHERE id = ?
-    `);
-    const user = stmt.get(id);
-
-    if (!user) {
-      return c.json({ success: false, error: "Admin user not found" }, 404);
-    }
-
-    return c.json({ success: true, data: user });
-  } catch (error) {
-    return c.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to fetch admin user" 
-    }, 500);
+adminUsers.openapi(getAdminUserRoute, (c) => {
+  const currentUser = c.get("user");
+  if (!currentUser || currentUser.role !== "super_admin") {
+    return c.json({ success: false, error: "Forbidden" }, 403);
   }
+
+  const { id } = c.req.valid("param");
+  const row = db
+    .prepare(
+      "SELECT id, username, email, role, isActive, lastLogin, createdAt, updatedAt FROM admin_users WHERE id = ?",
+    )
+    .get(id) as AdminUserRow | undefined;
+
+  if (!row) {
+    return c.json({ success: false, error: "Admin user not found" }, 404);
+  }
+
+  const user = {
+    ...row,
+    isActive: Boolean(row.isActive),
+  };
+
+  return c.json({ success: true, data: user }, 200);
 });
 
-// Create new admin user (super_admin only)
-adminUsers.post("/", requireRole(["super_admin"]), async (c) => {
+adminUsers.openapi(createAdminUserRoute, async (c) => {
+  const currentUser = c.get("user");
+  if (!currentUser || currentUser.role !== "super_admin") {
+    return c.json({ success: false, error: "Forbidden" }, 403);
+  }
+
+  const { username, email, password, role, isActive } = c.req.valid("json");
   try {
-    const body = await c.req.json();
-    const validatedData = createAdminUserSchema.parse(body);
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Check if username or email already exists
-    const existingUser = db.prepare(
-      "SELECT id FROM admin_users WHERE username = ? OR email = ?"
-    ).get(validatedData.username, validatedData.email);
+    const info = db
+      .prepare(
+        "INSERT INTO admin_users (username, email, password, role, isActive) VALUES (?, ?, ?, ?, ?)",
+      )
+      .run(username, email, hashedPassword, role, isActive ? 1 : 0);
 
-    if (existingUser) {
-      return c.json({ 
-        success: false, 
-        error: "Username or email already exists" 
-      }, 400);
-    }
+    const row = db
+      .prepare(
+        "SELECT id, username, email, role, isActive, lastLogin, createdAt, updatedAt FROM admin_users WHERE id = ?",
+      )
+      .get(info.lastInsertRowid) as AdminUserRow;
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
-
-    const stmt = db.prepare(`
-      INSERT INTO admin_users (username, email, password, role, isActive) 
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    
-    const info = stmt.run(
-      validatedData.username,
-      validatedData.email,
-      hashedPassword,
-      validatedData.role,
-      validatedData.isActive ? 1 : 0
-    );
-
-    const newUser = db.prepare(`
-      SELECT 
-        id,
-        username,
-        email,
-        role,
-        isActive,
-        createdAt,
-        updatedAt
-      FROM admin_users 
-      WHERE id = ?
-    `).get(info.lastInsertRowid);
+    const newUser = {
+      ...row,
+      isActive: Boolean(row.isActive),
+    };
 
     return c.json({ success: true, data: newUser }, 201);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return c.json({ 
-        success: false, 
-        error: "Validation error",
-        details: error.errors 
-      }, 400);
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "SQLITE_CONSTRAINT_UNIQUE"
+    ) {
+      return c.json(
+        { success: false, error: "Username or email already exists" },
+        400,
+      );
     }
-    console.error("Error creating admin user:", error);
-    return c.json({ 
-      success: false, 
-      error: "Failed to create admin user" 
-    }, 500);
+    throw error;
   }
 });
 
-// Update admin user (super_admin only, admin can update self)
-adminUsers.patch("/:id", authenticateToken, async (c) => {
+adminUsers.openapi(updateAdminUserRoute, async (c) => {
+  const currentUser = c.get("user");
+  if (!currentUser || currentUser.role !== "super_admin") {
+    return c.json({ success: false, error: "Forbidden" }, 403);
+  }
+
+  const { id } = c.req.valid("param");
+  const body = c.req.valid("json");
+
   try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid user ID" }, 400);
+    const sets: string[] = [];
+    const values: (string | number)[] = [];
+
+    if (body.username) {
+      sets.push("username = ?");
+      values.push(body.username);
     }
-
-    const body = await c.req.json();
-    const validatedData = updateAdminUserSchema.parse(body);
-
-    // Get current user from token
-    const currentUser = c.get("user");
-    
-    // Check permissions
-    const isSuperAdmin = currentUser.role === "super_admin";
-    const isAdmin = currentUser.role === "admin";
-    const isUpdatingSelf = currentUser.id === id;
-
-    // Only super_admin can update any user
-    // Admin can only update themselves
-    if (!isSuperAdmin && (!isAdmin || !isUpdatingSelf)) {
-      return c.json({ 
-        success: false, 
-        error: "Insufficient permissions" 
-      }, 403);
+    if (body.email) {
+      sets.push("email = ?");
+      values.push(body.email);
     }
-
-    // Check if user exists
-    const userExists = db.prepare(
-      "SELECT id, role FROM admin_users WHERE id = ?"
-    ).get(id) as any;
-    
-    if (!userExists) {
-      return c.json({ success: false, error: "Admin user not found" }, 404);
+    if (body.role) {
+      sets.push("role = ?");
+      values.push(body.role);
     }
-
-    // Prevent admin from changing role (only super_admin can)
-    if (validatedData.role && !isSuperAdmin) {
-      return c.json({ 
-        success: false, 
-        error: "Only super admin can change user roles" 
-      }, 403);
+    if (body.isActive !== undefined) {
+      sets.push("isActive = ?");
+      values.push(body.isActive ? 1 : 0);
     }
-
-    // Prevent last super_admin from being demoted or deactivated
-    if (userExists.role === "super_admin" && 
-        (validatedData.role !== "super_admin" || validatedData.isActive === false)) {
-      const superAdminCount = db.prepare(
-        "SELECT COUNT(*) as count FROM admin_users WHERE role = 'super_admin' AND isActive = 1"
-      ).get() as any;
-
-      if (superAdminCount.count <= 1) {
-        return c.json({ 
-          success: false, 
-          error: "Cannot demote or deactivate the last super admin" 
-        }, 400);
-      }
-    }
-
-    // Check for duplicate username/email
-    if (validatedData.username || validatedData.email) {
-      const duplicateCheck = db.prepare(`
-        SELECT id FROM admin_users 
-        WHERE (username = ? OR email = ?) AND id != ?
-      `).get(
-        validatedData.username || "",
-        validatedData.email || "",
-        id
-      );
-
-      if (duplicateCheck) {
-        return c.json({ 
-          success: false, 
-          error: "Username or email already exists" 
-        }, 400);
-      }
-    }
-
-    // Build dynamic update query
-    const updates: string[] = [];
-    const values: any[] = [];
-
-    if (validatedData.username !== undefined) {
-      updates.push("username = ?");
-      values.push(validatedData.username);
-    }
-    if (validatedData.email !== undefined) {
-      updates.push("email = ?");
-      values.push(validatedData.email);
-    }
-    if (validatedData.password !== undefined) {
-      const hashedPassword = await bcrypt.hash(validatedData.password, 10);
-      updates.push("password = ?");
+    if (body.password) {
+      const hashedPassword = await bcrypt.hash(body.password, 12);
+      sets.push("password = ?");
       values.push(hashedPassword);
     }
-    if (validatedData.role !== undefined && isSuperAdmin) {
-      updates.push("role = ?");
-      values.push(validatedData.role);
-    }
-    if (validatedData.isActive !== undefined && isSuperAdmin) {
-      updates.push("isActive = ?");
-      values.push(validatedData.isActive ? 1 : 0);
-    }
 
-    if (updates.length === 0) {
-      return c.json({ 
-        success: false, 
-        error: "No valid fields to update" 
-      }, 400);
+    if (sets.length === 0) {
+      const row = db
+        .prepare("SELECT * FROM admin_users WHERE id = ?")
+        .get(id) as AdminUserRow;
+      return c.json(
+        { success: true, data: { ...row, isActive: Boolean(row.isActive) } },
+        200,
+      );
     }
 
-    values.push(id);
-    const stmt = db.prepare(
-      `UPDATE admin_users SET ${updates.join(", ")} WHERE id = ?`
-    );
-    stmt.run(...values);
-
-    const updatedUser = db.prepare(`
-      SELECT 
-        id,
-        username,
-        email,
-        role,
-        isActive,
-        lastLogin,
-        createdAt,
-        updatedAt
-      FROM admin_users 
-      WHERE id = ?
-    `).get(id);
-
-    return c.json({ success: true, data: updatedUser });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return c.json({ 
-        success: false, 
-        error: "Validation error",
-        details: error.errors 
-      }, 400);
-    }
-    console.error("Error updating admin user:", error);
-    return c.json({ 
-      success: false, 
-      error: "Failed to update admin user" 
-    }, 500);
-  }
-});
-
-// Delete admin user (super_admin only)
-adminUsers.delete("/:id", requireRole(["super_admin"]), (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    if (isNaN(id)) {
-      return c.json({ success: false, error: "Invalid user ID" }, 400);
-    }
-
-    // Check if user exists and get role
-    const user = db.prepare(
-      "SELECT id, role FROM admin_users WHERE id = ?"
-    ).get(id) as any;
-
-    if (!user) {
-      return c.json({ success: false, error: "Admin user not found" }, 404);
-    }
-
-    // Prevent deleting the last super_admin
-    if (user.role === "super_admin") {
-      const superAdminCount = db.prepare(
-        "SELECT COUNT(*) as count FROM admin_users WHERE role = 'super_admin' AND isActive = 1"
-      ).get() as any;
-
-      if (superAdminCount.count <= 1) {
-        return c.json({ 
-          success: false, 
-          error: "Cannot delete the last super admin" 
-        }, 400);
-      }
-    }
-
-    // Prevent self-deletion
-    const currentUser = c.get("user");
-    if (currentUser.id === id) {
-      return c.json({ 
-        success: false, 
-        error: "Cannot delete your own account" 
-      }, 400);
-    }
-
-    const stmt = db.prepare("DELETE FROM admin_users WHERE id = ?");
-    const info = stmt.run(id);
+    const info = db
+      .prepare(`UPDATE admin_users SET ${sets.join(", ")} WHERE id = ?`)
+      .run(...values, id);
 
     if (info.changes === 0) {
       return c.json({ success: false, error: "Admin user not found" }, 404);
     }
 
-    return c.json({ 
-      success: true, 
-      message: "Admin user deleted successfully" 
-    });
-  } catch (error) {
-    console.error("Error deleting admin user:", error);
-    return c.json({ 
-      success: false, 
-      error: "Failed to delete admin user" 
-    }, 500);
+    const row = db
+      .prepare(
+        "SELECT id, username, email, role, isActive, lastLogin, createdAt, updatedAt FROM admin_users WHERE id = ?",
+      )
+      .get(id) as AdminUserRow;
+
+    const updatedUser = {
+      ...row,
+      isActive: Boolean(row.isActive),
+    };
+
+    return c.json({ success: true, data: updatedUser }, 200);
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "SQLITE_CONSTRAINT_UNIQUE"
+    ) {
+      return c.json(
+        { success: false, error: "Username or email already exists" },
+        400,
+      );
+    }
+    throw error;
   }
+});
+
+adminUsers.openapi(deleteAdminUserRoute, (c) => {
+  const currentUser = c.get("user");
+  if (!currentUser || currentUser.role !== "super_admin") {
+    return c.json({ success: false, error: "Forbidden" }, 403);
+  }
+
+  const { id } = c.req.valid("param");
+
+  // Prevent self-deletion
+  if (currentUser.id === id) {
+    return c.json(
+      { success: false, error: "Cannot delete your own account" },
+      400,
+    );
+  }
+
+  const info = db.prepare("DELETE FROM admin_users WHERE id = ?").run(id);
+
+  if (info.changes === 0) {
+    return c.json({ success: false, error: "Admin user not found" }, 404);
+  }
+
+  return c.json(
+    { success: true, message: "Admin user deleted successfully" },
+    200,
+  );
 });
 
 export default adminUsers;

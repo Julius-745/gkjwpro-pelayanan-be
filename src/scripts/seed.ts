@@ -200,7 +200,7 @@ function generateSundaysForMonths(): string[] {
   const sundays: string[] = [];
 
   // Find first Sunday in October
-  let current = new Date(startDate);
+  const current = new Date(startDate);
   while (current.getDay() !== 0) {
     current.setDate(current.getDate() + 1);
   }
