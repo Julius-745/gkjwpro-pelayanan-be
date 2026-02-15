@@ -123,7 +123,7 @@ app.doc("/swagger-json", {
   },
   servers: [
     {
-      url: process.env.API_URL || "http://localhost:3000",
+      url: process.env.API_URL || "/",
       description: "API server",
     },
   ],
